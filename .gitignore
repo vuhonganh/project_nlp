@@ -90,3 +90,6 @@ ENV/
 
 # pycharm IDE
 .idea/
+
+# glove data
+glove*
