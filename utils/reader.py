@@ -39,8 +39,8 @@ def read_coordinates(in_parenthese):
         else:
             try:
                 return int(float(elems[0])), int(float(elems[1]))
-            except ValueError:
-                print('invalid coordinates format')
+            except ValueError as er:
+                print('invalid coordinates format: ', er)
                 return None
 
 
