@@ -1,5 +1,6 @@
 import turtle
 
+
 def draw_rectangle(W, H):
     turtle.speed(10)
     turtle.pu()
@@ -32,21 +33,35 @@ turtle.fd(40)
 turtle.rt(-90)
 turtle.fd(40)
 
-turtle.done()
 
-# while True:
-#     turtle.speed(2)
-#     cmd = input()
-#     if cmd == 'exit':
-#         break
-#     elif cmd == 'f':
-#         turtle.fd(50)
-#     elif cmd == 'r':
-#         turtle.rt(90)
-#     elif cmd == 'u':
-#         turtle.pu()
-#     elif cmd == 'd':
-#         turtle.pd()
-#     else:
-#         print('unknown command')
-#
+while True:
+    # turtle.speed(1)
+    cmd = input()
+    if cmd == 'exit':
+        break
+    elif cmd[0] == 'f':
+        try:
+            dist = int(float(cmd[1:]))
+            turtle.fd(dist)
+        except ValueError as er:
+            print('bad syntax: ', er)
+    elif cmd[0] == 'r':
+        try:
+            angle = int(float(cmd[1:]))
+            turtle.rt(angle)
+        except ValueError as er:
+            print('bad syntax: ', er)
+    elif cmd[0] == 'l':
+        try:
+            angle = int(float(cmd[1:]))
+            turtle.lt(angle)
+        except ValueError as er:
+            print('bad syntax: ', er)
+    elif cmd == 'u':
+        turtle.pu()
+    elif cmd == 'd':
+        turtle.pd()
+    else:
+        print('unknown command')
+
+# turtle.done()
