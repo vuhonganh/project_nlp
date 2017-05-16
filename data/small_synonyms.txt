@@ -1,0 +1,5 @@
+go depart travel get move pass run
+turn twist rotate spin
+right right-side
+left left-side
+meter metre meters metres

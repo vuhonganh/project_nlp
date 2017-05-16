@@ -93,3 +93,6 @@ ENV/
 
 # glove data
 glove*
+
+# private files
+/private
