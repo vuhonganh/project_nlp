@@ -1,6 +1,25 @@
 """
 reader.py: process input sentence and extract important information
 """
+import nltk
+
+
+def read_small_synonyms(syn_file="../data/small_synonyms.txt"):
+    """
+    build a dict from synonym -> its represent word (first word in file)
+    :param syn_file: file contains synonym by line
+    :return: dict maps synonym -> its represent word
+    """
+    res = {}
+    with open(syn_file) as f:
+        for line in f:
+            line.strip()  # remove white spaces at the start and the end of line
+            if not line:
+                continue
+            ws = line.split()  # split by white spaces
+            val = ws[0]
+            res.update({key: val for key in ws})
+    return res
 
 
 def read_all_parentheses(in_text):
@@ -44,6 +63,22 @@ def read_coordinates(in_parenthese):
                 return None
 
 
+def replace_syn(line_list, syn_dict):
+    """
+    Replace synonyms in text_line by its values
+    :param line_list: list of input tokens
+    :param syn_dict: the synonym dict
+    :return: syn_text_list: the line with representative synonym 
+    """
+    res = []
+    for t in line_list:
+        if t in syn_dict.keys():
+            res.append(syn_dict[t])
+        else:
+            res.append(t)
+    return res
+
+
 def test_read_parentheses():
     text_inputs = ['go to point (23, 45)',
                    'go to point (2, 34, 5)',
@@ -57,6 +92,13 @@ def test_read_parentheses():
         print(read_all_parentheses(i))
 
 
-if __name__ == '__main__':
-    test_read_parentheses()
+def test_read_synonyms():
+    syn_dict = read_small_synonyms()
+    line_list = 'go 50 degrees to your left-side'.split()
+    out_list = replace_syn(line_list, syn_dict)
+    print(nltk.pos_tag(out_list))
 
+
+if __name__ == '__main__':
+    # test_read_parentheses()
+    test_read_synonyms()
