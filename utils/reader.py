@@ -4,6 +4,29 @@ reader.py: process input sentence and extract important information
 import nltk
 
 
+class Reader:
+    """
+    Each time reads in one sentence text and return 3 intents GO, TURN, UNK
+    """
+
+    def __init__(self, synonym_file="../data/small_synonyms.txt",
+                 intents=('GO', 'TURN', 'UNK'), debug=False):
+        self.intents = intents
+        self.syn_dict = read_small_synonyms(synonym_file)
+        self.debug = debug
+        self.cur_intent = None
+    def _preprocess(self, text):
+        """
+        remove "can you", "please" and punctuation from text string
+        :param text: input as whole text string
+        :return: text preprocessed as list
+        """
+        # nltk helps separate punctuation from word (e.g. please? -> please ?)
+        text_list = nltk.word_tokenize(text.lower())
+        to_removes = ('please', 'can', 'could', 'you', '.', '!', '?')
+        res = [t for t in text_list if t not in to_removes]
+        return res
+
 def read_small_synonyms(syn_file="../data/small_synonyms.txt"):
     """
     build a dict from synonym -> its represent word (first word in file)
@@ -34,12 +57,13 @@ def read_all_parentheses(in_text):
         id_start = in_text.find('(')
         if id_start == -1 or id_end == -1 or id_start > id_end:
             break
-        cur_pos = read_coordinates(in_text[id_start+1: id_end])
+        cur_pos = read_coordinates(in_text[id_start + 1: id_end])
         if cur_pos is not None:
             res.append(cur_pos)
         in_text = in_text[id_end + 1:]
 
     return res
+
 
 def read_coordinates(in_parenthese):
     """
