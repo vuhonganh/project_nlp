@@ -2,22 +2,23 @@
 reader.py: process input sentence and extract important information
 """
 import nltk
-
+GO = "GO"
+TURN = "TURN"
+UNK = "UNK"
 
 class Reader:
     """
     Each time reads in one sentence text and return 3 intents GO, TURN, UNK
     """
 
-    def __init__(self, synonym_file="../data/small_synonyms.txt",
-                 intents=('GO', 'TURN', 'UNK'), debug=False):
-        self.intents = intents
+    def __init__(self, synonym_file="../data/small_synonyms.txt",debug=False):
         self.syn_dict = read_small_synonyms(synonym_file)
         self.debug = debug
         self.cur_intent = None
+        self.specs = {}
     def _preprocess(self, text):
         """
-        remove "can you", "please" and punctuation from text string
+        remove "can you", "please" and punctuation from text string and replace synonym
         :param text: input as whole text string
         :return: text preprocessed as list
         """
@@ -25,7 +26,72 @@ class Reader:
         text_list = nltk.word_tokenize(text.lower())
         to_removes = ('please', 'can', 'could', 'you', '.', '!', '?')
         res = [t for t in text_list if t not in to_removes]
+        res = replace_syn(res, self.syn_dict)
         return res
+
+    def _read_tags(self, words_tags):
+        """
+        
+        :param words_tags: 
+        :return: 
+        """
+        # turn: VB - CD - NN - TO - PRP$ - NN
+        # turn: VB - CD - NN - TO - DT - NN
+        turn_possible = ["CD NN TO PRP$ NN",
+                         "CD NN TO DT NN"]  # omit the first verb
+        if self.cur_intent == TURN:
+            cur_tags = " ".join(wt[1] for wt in words_tags[1:])
+            if cur_tags not in turn_possible:
+                self.cur_intent = UNK
+                return
+            else:
+                # if not left or right at the end -> UNK
+                turn_right = 1
+                if words_tags[-1][0] == "left":
+                    turn_right = -1
+                elif words_tags[-1][0] != "right":
+                    self.cur_intent = UNK
+                    return
+                self.specs["degree"] = int(words_tags[1][0]) * turn_right
+        elif self.cur_intent == GO:
+            #TODO
+            pass
+
+
+
+
+    def read(self, text):
+        text_list = self._preprocess(text)
+        """
+        this text_list will have to get the intents: GO TURN OR UNK
+        if GO: check if go to point, otherwise go fwd or bwd 
+        if TURN: check if 
+        """
+        if text_list[0] == "go":
+            self.cur_intent = GO
+        elif text_list[0] == "turn":
+            self.cur_intent = TURN
+        else:
+            self.cur_intent = UNK
+            return
+
+        specs = {}
+        if self.cur_intent == GO:
+            # check if go to point
+            if "to" in text_list:
+                dests_list = read_all_parentheses(text)
+                if len(dests_list) == 0:
+                    self.cur_intent = UNK
+                else:
+                    specs["dests_list"] = dests_list
+            else:
+                # POS tag goes here:
+                words_tags = nltk.pos_tag(text_list)  # get a list of tuple (w, t)
+                for w, t in words_tags[1:]:  # skip the first word which is "go" or "turn"
+                    #TODO
+                    pass
+
+
 
 def read_small_synonyms(syn_file="../data/small_synonyms.txt"):
     """
@@ -101,6 +167,9 @@ def replace_syn(line_list, syn_dict):
         else:
             res.append(t)
     return res
+
+
+
 
 
 def test_read_parentheses():
