@@ -2,5 +2,7 @@ go depart travel get move pass run
 turn twist rotate spin
 right right-side
 left left-side
-meter metre meters metres
-degree degrees
+meters metre meter metres
+degrees degree
+forward ahead
+for about around

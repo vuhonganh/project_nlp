@@ -5,46 +5,64 @@ import nltk
 GO = "GO"
 TURN = "TURN"
 UNK = "UNK"
+"""
+turn: VB - CD - NNS - TO - PRP$ - NN (e.g. turn 50 degrees to your left)
+turn: VB - CD - NNS - TO - DT - NN   (e.g. turn 50 degrees to the left-side)
+"""
+TURN_POSSIBLE = ["CD NNS TO PRP$ NN",
+                 "CD NNS TO DT NN"]  # omit the first verb, singular -> plural
+
+""" 
+go: VB - RB - IN - CD - NNS       (e.g. go forward/backward for 50 metres)
+go: VB - CD - NNS - RB            (e.g. go 50 metres backward/forward)
+"""
+GO_POSSIBLE = ["RB IN CD NNS",
+               "CD NNS RB"]  # omit the first verb, singular -> plural (nltk reads meter as RB)
+
 
 class Reader:
     """
     Each time reads in one sentence text and return 3 intents GO, TURN, UNK
     """
 
-    def __init__(self, synonym_file="../data/small_synonyms.txt",debug=False):
+    def __init__(self, synonym_file="../data/small_synonyms.txt", debug=False):
         self.syn_dict = read_small_synonyms(synonym_file)
         self.debug = debug
         self.cur_intent = None
         self.specs = {}
+
     def _preprocess(self, text):
         """
-        remove "can you", "please" and punctuation from text string and replace synonym
+        remove some redundant words and punctuation from text string and replace synonym
         :param text: input as whole text string
         :return: text preprocessed as list
         """
         # nltk helps separate punctuation from word (e.g. please? -> please ?)
         text_list = nltk.word_tokenize(text.lower())
-        to_removes = ('please', 'can', 'could', 'you', '.', '!', '?')
+        to_removes = ('please', 'can', 'could', 'you', '.', '!', '?', 'straight')
         res = [t for t in text_list if t not in to_removes]
         res = replace_syn(res, self.syn_dict)
         return res
 
     def _read_tags(self, words_tags):
         """
-        
-        :param words_tags: 
-        :return: 
+        extract information (degree / meter) from words and its tags
+        :param words_tags: list of tuple (word, tag) given from nltk.pos_tag()
+        :return: None (this is a procedure that modify directly self.cur_intent) 
         """
-        # turn: VB - CD - NN - TO - PRP$ - NN
-        # turn: VB - CD - NN - TO - DT - NN
-        turn_possible = ["CD NN TO PRP$ NN",
-                         "CD NN TO DT NN"]  # omit the first verb
+        cur_tags = " ".join(wt[1] for wt in words_tags[1:])
+        if self.debug:
+            print(cur_tags)
         if self.cur_intent == TURN:
-            cur_tags = " ".join(wt[1] for wt in words_tags[1:])
-            if cur_tags not in turn_possible:
+            if cur_tags not in TURN_POSSIBLE:
                 self.cur_intent = UNK
                 return
             else:
+                # if not degree -> UNK:
+                if words_tags[2][0] != "degrees":
+                    print("Only support angle in degree")
+                    self.cur_intent = UNK
+                    return
                 # if not left or right at the end -> UNK
                 turn_right = 1
                 if words_tags[-1][0] == "left":
@@ -52,13 +70,31 @@ class Reader:
                 elif words_tags[-1][0] != "right":
                     self.cur_intent = UNK
                     return
-                self.specs["degree"] = int(words_tags[1][0]) * turn_right
+                self.specs["degrees"] = int(words_tags[1][0]) * turn_right
         elif self.cur_intent == GO:
-            #TODO
-            pass
-
-
-
+            if cur_tags not in GO_POSSIBLE:
+                print("not in go possible")
+                self.cur_intent = UNK
+                return
+            else:
+                # if not meter -> UNK:
+                if "meters" not in words_tags[2] and "meters" not in words_tags[4]:
+                    print("Only support distance in meter")
+                    self.cur_intent = UNK
+                    return
+                # find the adverb (RB) in words_tags for GO: (there should be only 1 elem)
+                direction = [wt[0] for wt in words_tags if wt[1] == "RB"]
+                forward = 1
+                if direction[0] == "backward":
+                    forward = -1
+                elif direction[0] != "forward":
+                    print("Only support forward and backward direction")
+                    self.cur_intent = UNK
+                    return
+                distance = [wt[0] for wt in words_tags if wt[1] == "CD"]
+                self.specs["meters"] = int(distance[0]) * forward
+                self.specs["goto"] = False
+        return
 
     def read(self, text):
         text_list = self._preprocess(text)
@@ -67,6 +103,9 @@ class Reader:
         if GO: check if go to point, otherwise go fwd or bwd 
         if TURN: check if 
         """
+        if len(text_list) == 0:
+            self.cur_intent = UNK
+            return
         if text_list[0] == "go":
             self.cur_intent = GO
         elif text_list[0] == "turn":
@@ -75,22 +114,33 @@ class Reader:
             self.cur_intent = UNK
             return
 
-        specs = {}
+        words_tags = nltk.pos_tag(text_list)  # get a list of tuple (w, t)
+        if self.debug:
+            print("words_tags = ", words_tags)
+        if self.cur_intent == TURN:
+            self._read_tags(words_tags)
+
         if self.cur_intent == GO:
             # check if go to point
+            if self.debug:
+                print("get go")
             if "to" in text_list:
                 dests_list = read_all_parentheses(text)
                 if len(dests_list) == 0:
                     self.cur_intent = UNK
                 else:
-                    specs["dests_list"] = dests_list
-            else:
+                    self.specs["dests_list"] = dests_list
+                    self.specs["goto"] = True
+            else:  # otherwise
                 # POS tag goes here:
-                words_tags = nltk.pos_tag(text_list)  # get a list of tuple (w, t)
-                for w, t in words_tags[1:]:  # skip the first word which is "go" or "turn"
-                    #TODO
-                    pass
+                if self.debug:
+                    print("read tags")
+                self._read_tags(words_tags)
+        return
 
+    def get_response(self, text):
+        self.read(text)
+        return self.cur_intent, self.specs
 
 
 def read_small_synonyms(syn_file="../data/small_synonyms.txt"):
