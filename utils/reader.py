@@ -24,7 +24,6 @@ class Reader:
     """
     Each time reads in one sentence text and return 3 intents GO, TURN, UNK
     """
-
     def __init__(self, synonym_file="../data/small_synonyms.txt", debug=False):
         self.syn_dict = read_small_synonyms(synonym_file)
         self.debug = debug
@@ -99,7 +98,7 @@ class Reader:
     def read(self, text):
         text_list = self._preprocess(text)
         """
-        this text_list will have to get the intents: GO TURN OR UNK
+        this text_list will have to get the intents: GO, TURN, UNK
         if GO: check if go to point, otherwise go fwd or bwd 
         if TURN: check if 
         """
@@ -108,6 +107,17 @@ class Reader:
             return
         if text_list[0] == "go":
             self.cur_intent = GO
+            if "to" in text_list:  # check if go to point
+                dests_list = read_all_parentheses(text)
+                if len(dests_list) == 0:
+                    self.cur_intent = UNK
+                    return
+                else:
+                    self.specs["dests_list"] = dests_list
+                    self.specs["goto"] = True
+                    return
+            else:
+                self.specs["goto"] = False
         elif text_list[0] == "turn":
             self.cur_intent = TURN
         else:
@@ -115,27 +125,22 @@ class Reader:
             return
 
         words_tags = nltk.pos_tag(text_list)  # get a list of tuple (w, t)
+        words_tags, detect_negative_value = correct_nltk_tags(words_tags)
+        if detect_negative_value:
+            print("Negative value is used?! Not supported negative values")
+            self.cur_intent = UNK
+            return
         if self.debug:
             print("words_tags = ", words_tags)
         if self.cur_intent == TURN:
+            if self.debug:
+                print("read tags TURN")
             self._read_tags(words_tags)
 
         if self.cur_intent == GO:
-            # check if go to point
             if self.debug:
-                print("get go")
-            if "to" in text_list:
-                dests_list = read_all_parentheses(text)
-                if len(dests_list) == 0:
-                    self.cur_intent = UNK
-                else:
-                    self.specs["dests_list"] = dests_list
-                    self.specs["goto"] = True
-            else:  # otherwise
-                # POS tag goes here:
-                if self.debug:
-                    print("read tags")
-                self._read_tags(words_tags)
+                print("read tags GO")
+            self._read_tags(words_tags)
         return
 
     def get_response(self, text):
@@ -219,9 +224,6 @@ def replace_syn(line_list, syn_dict):
     return res
 
 
-
-
-
 def test_read_parentheses():
     text_inputs = ['go to point (23, 45)',
                    'go to point (2, 34, 5)',
@@ -240,6 +242,33 @@ def test_read_synonyms():
     line_list = 'go 50 degrees to your left-side'.split()
     out_list = replace_syn(line_list, syn_dict)
     print(nltk.pos_tag(out_list))
+
+
+def special_notice_nltk():
+    """
+    found some case where nltk is defective when there are negative values
+    """
+    print(nltk.pos_tag(nltk.word_tokenize("go -100 metres forward")))
+    print(nltk.pos_tag(nltk.word_tokenize("turn -20 degrees to the left")))
+    return
+
+def correct_nltk_tags(pos_tags):
+    """
+    correct negative number tags
+    :param pos_tags: result of nltk.pos_tags() 
+    :return: corrected_pos_tags, detect_neg_val
+    """
+    res = pos_tags
+    detect_neg_val = False
+    for i in range(len(pos_tags)):
+        try:
+            float(res[i][0])
+            if res[i][1] != "CD":
+                res[i] = (res[i][0], "CD")
+                detect_neg_val = True
+        except ValueError:
+            continue
+    return res, detect_neg_val
 
 
 if __name__ == '__main__':

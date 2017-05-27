@@ -4,5 +4,6 @@ right right-side
 left left-side
 meters metre meter metres
 degrees degree
-forward ahead
+forward ahead forwards
+backward backwards
 for about around
