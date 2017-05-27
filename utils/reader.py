@@ -1,3 +1,5 @@
+#TODO: create GOTO intent
+
 """
 reader.py: process input sentence and extract important information
 """
@@ -49,58 +51,66 @@ class Reader:
         :param words_tags: list of tuple (word, tag) given from nltk.pos_tag()
         :return: None (this is a procedure that modify directly self.cur_intent) 
         """
+        if self.cur_intent == TURN:
+            self._read_TURN_long(words_tags)
+        elif self.cur_intent == GO:
+            self._read_GO_long(words_tags)
+        return
+
+    def _read_TURN_long(self, words_tags):
         cur_tags = " ".join(wt[1] for wt in words_tags[1:])
         if self.debug:
             print(cur_tags)
-        if self.cur_intent == TURN:
-            if cur_tags not in TURN_POSSIBLE:
+        if cur_tags not in TURN_POSSIBLE:
+            self.cur_intent = UNK
+            return
+        else:
+            # if not degree -> UNK:
+            if words_tags[2][0] != "degrees":
+                print("Only support angle in degree")
                 self.cur_intent = UNK
                 return
-            else:
-                # if not degree -> UNK:
-                if words_tags[2][0] != "degrees":
-                    print("Only support angle in degree")
-                    self.cur_intent = UNK
-                    return
-                # if not left or right at the end -> UNK
-                turn_right = 1
-                if words_tags[-1][0] == "left":
-                    turn_right = -1
-                elif words_tags[-1][0] != "right":
-                    self.cur_intent = UNK
-                    return
-                self.specs["degrees"] = int(words_tags[1][0]) * turn_right
-        elif self.cur_intent == GO:
-            if cur_tags not in GO_POSSIBLE:
-                print("not in go possible")
+            # if not left or right at the end -> UNK
+            turn_right = 1
+            if words_tags[-1][0] == "left":
+                turn_right = -1
+            elif words_tags[-1][0] != "right":
                 self.cur_intent = UNK
                 return
-            else:
-                # if not meter -> UNK:
-                if "meters" not in words_tags[2] and "meters" not in words_tags[4]:
-                    print("Only support distance in meter")
-                    self.cur_intent = UNK
-                    return
-                # find the adverb (RB) in words_tags for GO: (there should be only 1 elem)
-                direction = [wt[0] for wt in words_tags if wt[1] == "RB"]
-                forward = 1
-                if direction[0] == "backward":
-                    forward = -1
-                elif direction[0] != "forward":
-                    print("Only support forward and backward direction")
-                    self.cur_intent = UNK
-                    return
-                distance = [wt[0] for wt in words_tags if wt[1] == "CD"]
-                self.specs["meters"] = int(distance[0]) * forward
-                self.specs["goto"] = False
-        return
+            self.specs["degrees"] = int(words_tags[1][0]) * turn_right
+
+    def _read_GO_long(self, words_tags):
+        cur_tags = " ".join(wt[1] for wt in words_tags[1:])
+        if self.debug:
+            print(cur_tags)
+        if cur_tags not in GO_POSSIBLE:
+            print("not in go possible")
+            self.cur_intent = UNK
+        else:
+            # if not meter -> UNK:
+            if "meters" not in words_tags[2] and "meters" not in words_tags[4]:
+                print("Only support distance in meter")
+                self.cur_intent = UNK
+                return
+            # find the adverb (RB) in words_tags for GO: (there should be only 1 elem)
+            direction = [wt[0] for wt in words_tags if wt[1] == "RB"]
+            forward = 1
+            if direction[0] == "backward":
+                forward = -1
+            elif direction[0] != "forward":
+                print("Only support forward and backward direction")
+                self.cur_intent = UNK
+                return
+            distance = [wt[0] for wt in words_tags if wt[1] == "CD"]
+            self.specs["meters"] = int(distance[0]) * forward
+            self.specs["goto"] = False
 
     def read(self, text):
         text_list = self._preprocess(text)
         """
         this text_list will have to get the intents: GO, TURN, UNK
         if GO: check if go to point, otherwise go fwd or bwd 
-        if TURN: check if 
+        if TURN: check do it straight forward
         """
         if len(text_list) == 0:
             self.cur_intent = UNK
@@ -254,13 +264,16 @@ def special_notice_nltk():
 
 def correct_nltk_tags(pos_tags):
     """
-    correct negative number tags
+    correct negative number tags, backward is tagged NN in some case 
     :param pos_tags: result of nltk.pos_tags() 
     :return: corrected_pos_tags, detect_neg_val
     """
     res = pos_tags
     detect_neg_val = False
     for i in range(len(pos_tags)):
+        # backward -> RB
+        if res[i][0] == "backward":
+            res[i] = (res[i][0], "RB")
         try:
             float(res[i][0])
             if res[i][1] != "CD":

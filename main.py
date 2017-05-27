@@ -1,7 +1,7 @@
 from utils import reader
 from utils import robot_simu
 
-rd = reader.Reader("data/small_synonyms.txt", debug=False)
+rd = reader.Reader("data/small_synonyms.txt", debug=True)
 robot = robot_simu.Robot()
 while True:
     print("Enter command: ", end='')
