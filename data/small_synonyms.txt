@@ -7,3 +7,4 @@ degrees degree
 forward ahead forwards
 backward backwards
 for about around
+can could

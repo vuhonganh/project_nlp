@@ -40,9 +40,5 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     my_chat = Chat()
     my_chat.show()
-    # ui = Ui_MainWindow()
-    # wd = QtWidgets.QMainWindow()
-    # ui.setupUi(wd)
-    #
-    # wd.show()
+
     sys.exit(app.exec_())
