@@ -5,6 +5,7 @@ reader.py: process input sentence and extract important information
 """
 import nltk
 GO = "GO"
+GOTO = "GOTO"
 TURN = "TURN"
 UNK = "UNK"
 """
@@ -103,7 +104,6 @@ class Reader:
                 return
             distance = [wt[0] for wt in words_tags if wt[1] == "CD"]
             self.specs["meters"] = int(distance[0]) * forward
-            self.specs["goto"] = False
 
     def read(self, text):
         text_list = self._preprocess(text)
@@ -116,18 +116,17 @@ class Reader:
             self.cur_intent = UNK
             return
         if text_list[0] == "go":
-            self.cur_intent = GO
-            if "to" in text_list:  # check if go to point
+            if text_list[1] == "to":
+                self.cur_intent = GOTO
                 dests_list = read_all_parentheses(text)
                 if len(dests_list) == 0:
                     self.cur_intent = UNK
                     return
                 else:
                     self.specs["dests_list"] = dests_list
-                    self.specs["goto"] = True
                     return
             else:
-                self.specs["goto"] = False
+                self.cur_intent = GO
         elif text_list[0] == "turn":
             self.cur_intent = TURN
         else:

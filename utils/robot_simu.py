@@ -30,11 +30,10 @@ class Robot(Turtle):
 
     def do_cmd(self, intent, specs):
         if intent == "GO":
-            if specs["goto"]:
-                for dest in specs["dests_list"]:
-                    self.goto(dest[0], dest[1])
-            else:
-                self.fd(specs["meters"])
+            self.fd(specs["meters"])
+        elif intent == "GOTO":
+            for dest in specs["dests_list"]:
+                self.goto(dest[0], dest[1])
         elif intent == "TURN":
             self.rt(specs["degrees"])
         else:
