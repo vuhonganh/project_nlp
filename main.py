@@ -16,19 +16,28 @@ import sys
 #     else:
 #         robot.do_cmd(intent, specs)
 
+# set Rules text
+rules = """
+go forward/backward X 
+turn left/right X (degrees)
+"""
+
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         # super(Chat, self).__init__()
         super().__init__()  # python 3 syntax allows this
         self.setupUi(self)
+        self.teRules.setText(rules)
         self.pbSend.clicked.connect(self.sendClicked)
         self.rd = reader.Reader("data/small_synonyms.txt", debug=False)
         self.robot = robot_simu.Robot()
     def sendClicked(self):
         text = self.mleChat.text()
         self.mleChat.clear()
+        self.teLog.append("you:" + text)
         intent, specs = self.rd.get_response(text)
         self.robot.do_cmd(intent, specs)
+
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
         if a0.key() == QtCore.Qt.Key_Escape:

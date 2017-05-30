@@ -1,5 +1,4 @@
 
-
 class ActionGo:
     """
     super Class that extracts information from intent and deal with it 
@@ -16,7 +15,7 @@ class ActionTurn:
         self.input_dict = input_dict
 
     def __str__(self):
-        return "HELLO" + self.input_dict["intent"] + ", " + str(self.input_dict["list_text"])
+        return self.input_dict["intent"] + ", " + str(self.input_dict["list_text"])
 
 
 if __name__ == "__main__":
