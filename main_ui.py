@@ -4,21 +4,24 @@ from ui.ui_chat import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
 import sys
 from utils.action import ActionGo, ActionTurn
-
+import cozmo
 # set Rules text
 rules = "go forward/backward X (centimeters) \nturn left/right X (degrees)"
 act_dict = {"go": ActionGo, "turn": ActionTurn}
 
 
+
+
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
-    def __init__(self):
+    def __init__(self, acozmo=None):
         # super(Chat, self).__init__()
         super().__init__()  # python 3 syntax allows this
+        self.rd = reader_2.Reader2("data/small_synonyms.txt")
+        self.robot = robot_simu.Robot(acozmo)
         self.setupUi(self)
         self.teRules.setText(rules)
         self.pbSend.clicked.connect(self.sendClicked)
-        self.rd = reader_2.Reader2("data/small_synonyms.txt")
-        self.robot = robot_simu.Robot()
+        self.mleChat.setFocus()
 
     def sendClicked(self):
         human_cmd = self.mleChat.text()
@@ -49,9 +52,18 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         super().keyPressEvent(a0)
 
 
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    my_chat = Chat()
+def run(sdk_conn):
+    qt_app = QtWidgets.QApplication(sys.argv)
+    my_cozmo = sdk_conn.wait_for_robot()
+    my_chat = Chat(my_cozmo)
     my_chat.show()
+    sys.exit(qt_app.exec_())
 
-    sys.exit(app.exec_())
+if __name__ == "__main__":
+    # app = QtWidgets.QApplication(sys.argv)
+    # my_chat = Chat()
+    # my_chat.show()
+    #
+    # sys.exit(app.exec_())
+    cozmo.connect(run)
+

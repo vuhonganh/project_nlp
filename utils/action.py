@@ -22,12 +22,12 @@ class ActionGo:
         strictly follow the rules for GO intent
         procedure extracts info to self.res_dict
         """
-        if is_float(self.input_dict["list_text"][2]):
+        self.res_dict["intent"] = "UNK"
+        if len(self.input_dict["list_text"]) >= 3 and is_float(self.input_dict["list_text"][2]):
             direct = 1
             if "backward" == self.input_dict["list_text"][1]:
                 direct = -1
             elif "forward" != self.input_dict["list_text"][1]:
-                self.res_dict["intent"] = "UNK"
                 return
             self.res_dict["dist"] = direct * int(float(self.input_dict["list_text"][2]))
             self.res_dict["intent"] = self.input_dict["intent"]
@@ -56,14 +56,18 @@ class ActionTurn:
         strictly follow the rules for TURN intent
         procedure extracts info to self.res_dict
         """
-        if is_float(self.input_dict["list_text"][2]):
-            right = 1
-            if "left" == self.input_dict["list_text"][1]:
-                right = -1
-            elif "right" != self.input_dict["list_text"][1]:
-                self.res_dict["intent"] = "UNK"
+        self.res_dict["intent"] = "UNK"
+        length_list = len(self.input_dict["list_text"])
+        if length_list == 2 or is_float(self.input_dict["list_text"][2]):
+            left = 1
+            if "right" == self.input_dict["list_text"][1]:
+                left = -1
+            elif "left" != self.input_dict["list_text"][1]:
                 return
-            self.res_dict["angle"] = right * int(float(self.input_dict["list_text"][2]))
+            angle = 90
+            if length_list > 2:
+                angle = int(float(self.input_dict["list_text"][2]))
+            self.res_dict["angle"] = left * angle
             self.res_dict["intent"] = self.input_dict["intent"]
 
     def do_act(self, robot):
@@ -72,7 +76,7 @@ class ActionTurn:
         if self.res_dict["intent"] == "UNK":
             response += "Unknown command! Please check the rule"
         else:
-            robot.turn_right(self.res_dict["angle"])
+            robot.turn_left(self.res_dict["angle"])
             response += self.res_dict["intent"] + " complete."
         return response
 

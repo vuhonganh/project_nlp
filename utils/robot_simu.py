@@ -1,12 +1,15 @@
 from turtle import Turtle
+import cozmo
+from cozmo.util import degrees, distance_mm, speed_mmps
 
 
 class Robot(Turtle):
 
-    def __init__(self):
+    def __init__(self, acozmo=None):
         Turtle.__init__(self)
         self.getscreen().setup(1000, 1000)  # window
         self.draw_map()
+        self.m_cozmo = acozmo
     def draw_map(self, W=600, H=800):
         self.speed(10)
         self.pu()
@@ -41,6 +44,12 @@ class Robot(Turtle):
 
     def fwd(self, dist):
         self.forward(dist)
+        if self.m_cozmo:
+            self.m_cozmo.drive_straight(distance_mm(dist), speed_mmps(100))
+            # self.m_cozmo.drive_straight(distance_mm(dist), speed_mmps(50)).wait_for_completed()
 
-    def turn_right(self, angle):
-        self.rt(angle)
+    def turn_left(self, angle):
+        self.lt(angle)
+        if self.m_cozmo:
+            self.m_cozmo.turn_in_place(degrees(angle))
+            # self.m_cozmo.turn_in_place(degrees(angle)).wait_for_completed()
