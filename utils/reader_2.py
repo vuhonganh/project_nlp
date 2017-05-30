@@ -28,7 +28,10 @@ class Reader2:
         self.res_dict["raw_text"] = text
         text_processed_list = self._preprocess(text)
         self.res_dict["list_text"] = text_processed_list
-        self.res_dict["intent"] = text_processed_list[0]
+        if text_processed_list[0] == "go" and text_processed_list[1] == "to":
+            self.res_dict["intent"] = "goto"
+        else:
+            self.res_dict["intent"] = text_processed_list[0]
         return self.res_dict
 
     @staticmethod

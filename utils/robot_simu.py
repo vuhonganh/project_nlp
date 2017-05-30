@@ -38,3 +38,9 @@ class Robot(Turtle):
             self.rt(specs["degrees"])
         else:
             print("Unknown intent")
+
+    def fwd(self, dist):
+        self.forward(dist)
+
+    def turn_right(self, angle):
+        self.rt(angle)
