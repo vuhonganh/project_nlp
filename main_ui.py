@@ -2,6 +2,7 @@ from utils import reader_2
 from utils import robot_simu
 from utils.asr import VoiceRec
 from utils.asr import RecThread
+from utils.asr import STT
 from ui.ui_chat import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
 import sys
@@ -27,7 +28,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # FIRST try
         self.voice_thread = None
-        self.voice_thread = VoiceRec(recording_time=1)
+        self.voice_thread = VoiceRec(recording_time=5)
         self.voice_thread.signal_recording_done.connect(self.recordReady)
         self.voice_thread.start()
 
@@ -35,6 +36,10 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self._speechRecWorker = None
         # self._speechRecWorker = RecThread(1)
         # self._speechRecWorker.speechReady.connect(self.recordReady)
+
+        self.stt_thread = STT()
+        self.stt_thread.signal_stt_done.connect(self.sttReady)
+        self.stt_thread.start()
 
         # make cursor focus on chat line
         self.mleChat.setFocus()
@@ -44,9 +49,13 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.mleChat.clear()
         self.human_log(human_cmd)
         info_dict = self.rd.read(human_cmd)
-        act = act_dict[info_dict["intent"]](info_dict)
-        robot_rep = act.do_act(self.robot)
-        self.robot_log(robot_rep)
+
+        if info_dict["intent"] not in act_dict.keys():
+            self.robot_log("Unknown command!")
+        else:
+            act = act_dict[info_dict["intent"]](info_dict)
+            robot_rep = act.do_act(self.robot)
+            self.robot_log(robot_rep)
 
     def human_log(self, text):
         self.teLog.setTextColor(QtGui.QColor('blue'))
@@ -63,6 +72,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.teLog.insertPlainText(text + "\n")
 
     def voiceClicked(self):
+        print("voice clicked")
         self.pbVoice.setEnabled(False)
         if self.voice_thread:
             self.voice_thread.activate()
@@ -71,10 +81,19 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot(str)
     def recordReady(self, filename):
-        if self.voice_thread:
-            self.voice_thread.deactivate()
+        print("record ready")
+        # if self.voice_thread:
+        #     self.voice_thread.deactivate()
         self.pbVoice.setEnabled(True)
-        self.teLog.append('LOG: sound is recorded to {}'.format(filename))
+        self.teLog.insertPlainText('LOG: sound is recorded to ' + filename + '\n')
+        self.stt_thread.activate(filename)
+
+    @QtCore.pyqtSlot(list)
+    def sttReady(self, list_trans):
+        print("stt ready")
+        best = list_trans[0]
+        self.mleChat.setText(best)
+
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
         if a0.key() == QtCore.Qt.Key_Escape:
