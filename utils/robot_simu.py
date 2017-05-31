@@ -53,3 +53,6 @@ class Robot(Turtle):
         if self.m_cozmo:
             self.m_cozmo.turn_in_place(degrees(angle))
             # self.m_cozmo.turn_in_place(degrees(angle)).wait_for_completed()
+
+    def shut_down(self):
+        self.getscreen().bye()

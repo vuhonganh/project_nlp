@@ -1,5 +1,7 @@
 from utils import reader_2
 from utils import robot_simu
+from utils.asr import VoiceRec
+from utils.asr import RecThread
 from ui.ui_chat import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
 import sys
@@ -10,8 +12,6 @@ rules = "go forward/backward X (millimeters) \nturn left/right X (degrees)"
 act_dict = {"go": ActionGo, "turn": ActionTurn}
 
 
-
-
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, acozmo=None):
         # super(Chat, self).__init__()
@@ -20,7 +20,23 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.robot = robot_simu.Robot(acozmo)
         self.setupUi(self)
         self.teRules.setText(rules)
+
+        # click button bind to appropriate function
         self.pbSend.clicked.connect(self.sendClicked)
+        self.pbVoice.clicked.connect(self.voiceClicked)
+
+        # FIRST try
+        self.voice_thread = None
+        self.voice_thread = VoiceRec(recording_time=1)
+        self.voice_thread.signal_recording_done.connect(self.recordReady)
+        self.voice_thread.start()
+
+        # SECOND try
+        self._speechRecWorker = None
+        # self._speechRecWorker = RecThread(1)
+        # self._speechRecWorker.speechReady.connect(self.recordReady)
+
+        # make cursor focus on chat line
         self.mleChat.setFocus()
 
     def sendClicked(self):
@@ -46,6 +62,20 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.teLog.setTextColor(QtGui.QColor('black'))
         self.teLog.insertPlainText(text + "\n")
 
+    def voiceClicked(self):
+        self.pbVoice.setEnabled(False)
+        if self.voice_thread:
+            self.voice_thread.activate()
+        if self._speechRecWorker:
+            self._speechRecWorker.record()
+
+    @QtCore.pyqtSlot(str)
+    def recordReady(self, filename):
+        if self.voice_thread:
+            self.voice_thread.deactivate()
+        self.pbVoice.setEnabled(True)
+        self.teLog.append('LOG: sound is recorded to {}'.format(filename))
+
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
         if a0.key() == QtCore.Qt.Key_Escape:
             self.close()
@@ -63,7 +93,7 @@ if __name__ == "__main__":
     try:
         cozmo.connect(run)
     except:
-        print("cozmo not connected")
+        print("cozmo not connected, running without it")
         app = QtWidgets.QApplication(sys.argv)
         my_chat = Chat()
         my_chat.show()
