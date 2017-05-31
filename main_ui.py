@@ -88,30 +88,32 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.teLog.insertPlainText('LOG: sound is recorded to ' + filename + '\n')
         self.stt_thread.activate(filename)
 
+
     @QtCore.pyqtSlot(list)
     def sttReady(self, list_trans):
         print("stt ready")
         best = list_trans[0]
         self.mleChat.setText(best)
-
+        self.sendClicked()
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
         if a0.key() == QtCore.Qt.Key_Escape:
             self.close()
+
         super().keyPressEvent(a0)
 
 
 def run(sdk_conn):
     qt_app = QtWidgets.QApplication(sys.argv)
     my_cozmo = sdk_conn.wait_for_robot()
-    my_chat = Chat(my_cozmo)
-    my_chat.show()
+    this_chat = Chat(my_cozmo)
+    this_chat.show()
     sys.exit(qt_app.exec_())
 
 if __name__ == "__main__":
     try:
         cozmo.connect(run)
-    except:
+    except cozmo.NoDevicesFound:
         print("cozmo not connected, running without it")
         app = QtWidgets.QApplication(sys.argv)
         my_chat = Chat()
