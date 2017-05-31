@@ -6,7 +6,7 @@ import sys
 from utils.action import ActionGo, ActionTurn
 import cozmo
 # set Rules text
-rules = "go forward/backward X (centimeters) \nturn left/right X (degrees)"
+rules = "go forward/backward X (millimeters) \nturn left/right X (degrees)"
 act_dict = {"go": ActionGo, "turn": ActionTurn}
 
 

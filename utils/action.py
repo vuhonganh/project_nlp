@@ -6,6 +6,7 @@ def is_float(t):
     except ValueError:
         return False
 
+
 class ActionGo:
     """
     super Class that extracts information from intent and deal with it 
@@ -38,8 +39,11 @@ class ActionGo:
         if self.res_dict["intent"] == "UNK":
             response += "Unknown command! Please check the rule"
         else:
-            robot.fwd(self.res_dict["dist"])
-            response += self.res_dict["intent"] + " complete."
+            if abs(self.res_dict["dist"]) < 1001:
+                robot.fwd(self.res_dict["dist"])
+                response += self.res_dict["intent"] + " complete."
+            else:
+                response += self.res_dict["intent"] + " distance out of range (max = 1000)"
         return response
 
 
@@ -66,7 +70,7 @@ class ActionTurn:
                 return
             angle = 90
             if length_list > 2:
-                angle = int(float(self.input_dict["list_text"][2]))
+                angle = int(float(self.input_dict["list_text"][2])) % 360
             self.res_dict["angle"] = left * angle
             self.res_dict["intent"] = self.input_dict["intent"]
 
