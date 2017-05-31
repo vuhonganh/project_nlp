@@ -60,10 +60,11 @@ def run(sdk_conn):
     sys.exit(qt_app.exec_())
 
 if __name__ == "__main__":
-    # app = QtWidgets.QApplication(sys.argv)
-    # my_chat = Chat()
-    # my_chat.show()
-    #
-    # sys.exit(app.exec_())
-    cozmo.connect(run)
-
+    try:
+        cozmo.connect(run)
+    except:
+        print("cozmo not connected")
+        app = QtWidgets.QApplication(sys.argv)
+        my_chat = Chat()
+        my_chat.show()
+        sys.exit(app.exec_())
