@@ -5,6 +5,6 @@ left left-side
 meters metre meter metres
 degrees degree
 forward ahead forwards
-backward backwards
+backward backwards back
 for about around
 can could
