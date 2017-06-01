@@ -92,9 +92,12 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot(list)
     def sttReady(self, list_trans):
         print("stt ready")
-        best = list_trans[0]
-        self.mleChat.setText(best)
-        self.sendClicked()
+        if len(list_trans) > 0:
+            best = list_trans[0]
+            self.mleChat.setText(best)
+            self.sendClicked()
+        else:
+            print("list of transcripts is empty")
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
         if a0.key() == QtCore.Qt.Key_Escape:

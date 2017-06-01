@@ -30,16 +30,19 @@ class STT(QThread):
             self._mutex.lock()
             self._condition.wait(self._mutex)
             ### DOING THING
+            trans = []
             with open(self.file_path, 'rb') as audio_file:
                 sample = self.client.sample(content=audio_file.read(),
                                             sample_rate=16000,
                                             encoding=speech.Encoding.FLAC)
-                alternatives = sample.sync_recognize(language_code='en-US',
-                                                     max_alternatives=self.max_alter
-                                                     )
-            trans = []
-            for a in alternatives:
-                trans.append(a.transcript)
+                try:
+                    alternatives = sample.sync_recognize(language_code='en-US',
+                                                         max_alternatives=self.max_alter
+                                                         )
+                    for a in alternatives:
+                        trans.append(a.transcript)
+                except ValueError as e:
+                    print("error: ", e)
 
             self.signal_stt_done.emit(trans)
             ### DONE DOING THING
