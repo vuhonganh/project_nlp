@@ -109,6 +109,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 def run(sdk_conn):
     qt_app = QtWidgets.QApplication(sys.argv)
     my_cozmo = sdk_conn.wait_for_robot()
+    my_cozmo.drive_off_charger_on_connect = False
     this_chat = Chat(my_cozmo)
     this_chat.show()
     sys.exit(qt_app.exec_())
