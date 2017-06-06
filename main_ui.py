@@ -110,6 +110,8 @@ def run(sdk_conn):
     qt_app = QtWidgets.QApplication(sys.argv)
     my_cozmo = sdk_conn.wait_for_robot()
     my_cozmo.drive_off_charger_on_connect = False
+    my_cozmo.camera.color_image_enabled = True
+    # img = my_cozmo.world.latest_image
     this_chat = Chat(my_cozmo)
     this_chat.show()
     sys.exit(qt_app.exec_())
