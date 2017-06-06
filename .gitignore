@@ -96,3 +96,9 @@ glove*
 
 # private files
 /private
+
+# zip files
+*.zip
+
+# gzip files
+*.gz
