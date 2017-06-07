@@ -6,10 +6,10 @@
 % Edit these to provide the correct information
 % e.g. \newcommand{\reportauthor}{Timothy Kimber}
 
-\newcommand{\reporttitle}{Title}
-\newcommand{\reportauthor}{Your name}
-\newcommand{\supervisor}{Name of supervisor}
-\newcommand{\degreetype}{Type of Degree}
+\newcommand{\reporttitle}{Voice command system for robot's application}
+\newcommand{\reportauthor}{Hong Anh VU}
+\newcommand{\supervisor}{Jim Cunningham \\ Stefan Leutenegger}
+\newcommand{\degreetype}{Machine Learning}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -19,7 +19,7 @@
 % load some macros
 \input{notation}
 
-\date{September 2015}
+\date{June 2017}
 
 \begin{document}
 
@@ -34,16 +34,16 @@
 \pagestyle{fancy}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{abstract}
-Your abstract.
-\end{abstract}
+%\begin{abstract}
+%Your abstract. TODO
+%\end{abstract}
+%\cleardoublepage
 
-\cleardoublepage
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{Acknowledgments}
-Comment this out if not needed.
-
-\clearpage{\pagestyle{empty}\cleardoublepage}
+%\section*{Acknowledgments}
+%Comment this out if not needed.
+%\clearpage{\pagestyle{empty}\cleardoublepage}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %--- table of contents
@@ -59,35 +59,51 @@ Comment this out if not needed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
+%\begin{figure}[tb]
+%\centering
+%\includegraphics[width = 0.4\hsize]{./figures/imperial}
+%\caption{Imperial College Logo. It's nice blue, and the font is quite stylish. But you can choose a different one if you don't like it.}
+%\label{fig:logo}
+%\end{figure}
+%
+%Figure~\ref{fig:logo} is an example of a figure. 
+\input{intro}
 
-\begin{figure}[tb]
-\centering
-\includegraphics[width = 0.4\hsize]{./figures/imperial}
-\caption{Imperial College Logo. It's nice blue, and the font is quite stylish. But you can choose a different one if you don't like it.}
-\label{fig:logo}
-\end{figure}
 
-Figure~\ref{fig:logo} is an example of a figure. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
 
+\input{background}
+% Example of citation
+% Random citation \cite{DUMMY:1} embeddeed in text.
+% Another github citation \cite{Johnson2015} is here.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Progress Summary}  % TO REMOVE in full report
+\input{progress}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Plan}  % TO REMOVE in full report
+\input{plan}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Contribution}
+%\chapter{Contribution} TODO in full report
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Experimental Results}
+%\chapter{Experimental Results} TODO in full report
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Conclusion}
+%\chapter{Conclusion} TODO in full report
 
 
 %% bibliography
-\bibliographystyle{apa}
 
+%\bibliographystyle{apa}
+\bibliographystyle{abbrv}
+\bibliography{mybiblio}
 
 \end{document}
