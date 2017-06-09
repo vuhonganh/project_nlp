@@ -4,6 +4,50 @@ Automatic Speech Recognition (ASR) system is the core part in the system. Given 
 
 Note that to build an ASR system that performs on the level of Amazon Alexa or Google Now, we need a lot of training data in both quantity (hundreds of thousands hours of spoken audio) and diversity (native speakers, non-native speakers, with or without background noise, etc.) Hence the attention for this project will be on the application.
 
+\section{Neural Network Overview}
+Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly convolutional neural networks which is used to classify image.
+\subsection{Fully-connected Neural Network}
+A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure \ref{fig:fcNet}: The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/fcNet}
+	\caption{A simple fully connected neural network which classifies an input data into 3 categories using softmax classifier and rectified linear unit activation function (ReLU).}
+	\label{fig:fcNet}
+\end{figure}
+In practice, fully-connected layers are combined with other blocks and they are usually the final block of a classification model. For example, figure \ref{fig:convNet1} shows a simple convolutional neural network with fully-connected layer at the end to classify the input image.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/convNet1}
+	\caption{A simple convolutional neural network: its neurons are transposed into 3D shape (width, height and depth) at each layer. The fully connected layer is placed at the end to classify input.}
+	\label{fig:convNet1}
+\end{figure}
+\subsection{Convolutional Neural Network}
+Image inputs usually have a 3D shape: width, height and 3 color channels (RGB). Hence, convolutional neural network also aranges its neurons in 3 dimensions: width ($w$), height ($h$), depth ($h$). Note that the depth of input layer equals the number color channels of input image and the \textbf{depth of convolution layer equals the number of filters applied at that layer}. If we use filters of size $3*3$, then in a convolutional layer $i$:
+\begin{itemize}
+	\item the weight $W_i$ is a stack of filters and $dim(W_i) = 3*3*d_{i-1}*d_i$ where $d_{i-1}$, $d_i$ are depth of layer $i-1$ and $i$ respectively.
+	\item the bias $b_i$ is the vector with length equals number of filters, i.e. $b_i \in R^{d_i}$
+	\item We convolve the tensor input $w_{i-1}*h_{i-1}*d_{i-1}$ coming from layer $i-1$ with a filter block $3*3*d_{i-1}*d_{i}$ to obtain tensor size $w_{i-1}*h_{i-1}*d_{i}$. Note that we convolve with padding input to keep the same width and height dimension after convolving.
+	\item We add bias $b_i$ element-wise for each "surface" (or "slice") $w_{i-1}*h_{i-1}$ of the current tensor.
+	\item We apply activation function ReLU to current tensor.
+	\item We sub-sample the current tensor to keep strongest features and reduce tensor size. We have final output tensor of size $w_i * h_i *d_i$
+\end{itemize}  
+The process is illustrated in figure \ref{fig:convNetsimple}. And a common method for sub-sampling is max-pooling is shown in figure \ref{fig:maxpool}. It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/convNetsimple}
+	\caption{Operations and parameters of convolution layers. Note that only input image and 2 convolution layers are drawn here.}
+	\label{fig:convNetsimple}
+\end{figure}
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.6\hsize]{./figures/maxpool}
+	\caption{Max-pooling to reduce tensor size and keep strongest features.}
+	\label{fig:maxpool}
+\end{figure}
+After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification.
+
+\subsection{Softmax Loss}
+
 
 \section{Image Classification}
 \subsection{Overview}
@@ -24,12 +68,12 @@ Note that to build an ASR system that performs on the level of Amazon Alexa or G
 \caption{Some challenges of Image Classification problem}
 \label{fig:ImClasschallenges}
 \end{figure}
-\subsection{Solution}
-The family of state of the art solutions for image classification is deep convolutional neural networks (CNN). Figure \ref{fig:imagenetTop5Err} illustrates this point. Below are some brief explaination for its success:
+\subsection{State-of-the-art Solution}
+The family of the best solutions for image classification up to now is deep convolutional neural networks (CNN). Figure \ref{fig:imagenetTop5Err} illustrates this point. Below are some brief explaination for its success:
 \begin{itemize}
-	\item Deep neural networks allows the non-linearity properties through activation layers. The system is more flexible and can self-adjust to prioritise important features.
-	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters extract from input image many types of features such as: edge, shape, colors etc. (for more details see \cite{DeepVis:2015})
-	\item Convolutional layers act as features builder, and given enough data, machine did this job better than human (figure \ref{fig:imagenetTop5Err}).
+	\item Deep neural networks accomodate non-linearity properties through activation layers. This makes the system more flexible and able to prioritise important features.
+	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters can extract from input image many types of features such as: edge, shape, colors etc. (for more details see \cite{DeepVis:2015})
+	\item Convolutional layers act as features builder, and given enough data, machines do this job better than a human (figure \ref{fig:imagenetTop5Err}).
 \end{itemize}
 
 
@@ -40,11 +84,14 @@ The family of state of the art solutions for image classification is deep convol
 \label{fig:imagenetTop5Err}
 \end{figure}
 
+
+
+
 \subsection{VGG16 Architecture}
-To solve my classification problem, I intend to use the VGG16 architecture \cite{DBLP:journals/corr/SimonyanZ14a} (figure \ref{fig:originalVgg16}) with minor modification at the fully connected layers as we do not have to classify 1000 objects. In addition to the illustration in figure \ref{fig:originalVgg16}, some details are noted below:
+To solve my classification problem, I propose to use the VGG16 architecture \cite{DBLP:journals/corr/SimonyanZ14a} (figure \ref{fig:originalVgg16}) with minor modification at the fully connected layers as we do not have to classify 1000 objects. In addition to the illustration in figure \ref{fig:originalVgg16}, some details are noted below:
 \begin{itemize}
 	\item ReLU (rectified linear unit) is an activation function which is defined as: $f(x) := max(0, x)$. This is one place where we introduce non-linearity.
-	\item maxpool (also called max pooling) is an action of non-linear down-sampling features. It partitions each input layer (2D) into non-overlapping rectangles and choose the maximum value in each rectangle. Here we introduce both non-linearity and prioritise strongest features.
+	\item maxpool (also called max pooling) is an action of non-linear down-sampling features. 
 	\item dropout: is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers. In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble.
 \end{itemize}
 \begin{figure}[tb]
