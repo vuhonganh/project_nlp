@@ -44,10 +44,20 @@ The process is illustrated in figure \ref{fig:convNetsimple}. And a common metho
 	\caption{Max-pooling to reduce tensor size and keep strongest features.}
 	\label{fig:maxpool}
 \end{figure}
-After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification.
+After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers. In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
 
-\subsection{Softmax Loss}
+\subsection{Loss Function}
+We are left to define a loss function: which allows us to train a machine learning model by updating parameters in order to minimise loss. For classification problems we often use the popular cross-entropy loss function. Consider an input indexed $i$, then its cross-entropy loss is
+\begin{align}
+\label{form:CELoss}
+L_i(s) = -\log(\frac{e^{s_{y_i}}}{\sum_{k=1}^{N}e^{s_k}}) = -s_{y_i} + \log\sum_{k=1}^{N}e^{s_k}
+\end{align}
+where $y_i$ is its ground-truth label, and $s$ denotes its score at the last layer (see figure \ref{fig:fcNet}). We can see from formula \ref{form:CELoss} that if the score for ground-truth label gets bigger then the loss gets smaller.
 
+Now, given the loss function, we will use stochastic gradient descent to minimise it. There is one hyperparameter related to this optimisation technique which is the learning rate.
+
+\subsection{Train, validate and test}
+To train and validate a machine learning model, we usually split the dataset into 3 parts: training set ($\approx56\%$), validation set ($\approx14\%$) and test set ($\approx30\%$). We will use training dataset to train the model (in our case they are all the parameters $W_i$, $b_i$) and use the validation dataset to tune other hyperparameters: learning rates, dropout probability, hidden layer sizes, number of filters etc. Once we have done our best on the validation set, we run a run the model only once on the test dataset and obtain the test accuracy. This figure will be our model performance. 
 
 \section{Image Classification}
 \subsection{Overview}
@@ -80,25 +90,23 @@ The family of the best solutions for image classification up to now is deep conv
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.9\hsize]{./figures/imagenetTop5Err}
-\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2016. We can note a huge improvement from traditional approaches which use hand-crafted computer vision classifiers (CV) to deep convolutional neural network. VGG architecture is the winner in 2014.}
+\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2016. We can note a huge improvement from traditional approaches which use hand-crafted computer vision classifiers (CV) to deep convolutional neural network. VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is the winner in 2014. Its performance nearly equals to human beings.}
 \label{fig:imagenetTop5Err}
 \end{figure}
 
-
-
-
-\subsection{VGG16 Architecture}
-To solve my classification problem, I propose to use the VGG16 architecture \cite{DBLP:journals/corr/SimonyanZ14a} (figure \ref{fig:originalVgg16}) with minor modification at the fully connected layers as we do not have to classify 1000 objects. In addition to the illustration in figure \ref{fig:originalVgg16}, some details are noted below:
-\begin{itemize}
-	\item ReLU (rectified linear unit) is an activation function which is defined as: $f(x) := max(0, x)$. This is one place where we introduce non-linearity.
-	\item maxpool (also called max pooling) is an action of non-linear down-sampling features. 
-	\item dropout: is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers. In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble.
-\end{itemize}
+\subsection{Transfer Learning from VGG16 model}
+To solve my classification problem, I propose to use the VGG16 model \cite{DBLP:journals/corr/SimonyanZ14a} with some modifications at the fully connected layers as we do not have to classify 1000 objects. The original VGG16 model is illustrated in figure \ref{fig:originalVgg16}. Two reasons of using VGG16 model are its good performance and its simplicity compared to other successful models (Microsoft ResNet \cite{DBLP:journals/corr/HeZRS15}, Google Inception \cite{DBLP:journals/corr/SzegedyVISW15}, etc.)
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/originalVgg16}
-	\caption{VGG16 architecture}
+	\caption{Original VGG16 model}
 	\label{fig:originalVgg16}
 \end{figure}
 
-The reasons of using VGG16 architecture are its good performance and its simplicity compared to other models (Microsoft ResNet \cite{DBLP:journals/corr/HeZRS15}, Google Inception \cite{DBLP:journals/corr/SzegedyVISW15}, etc.)
+In my object finding problem, I propose to classify about 12 categories: "apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange". They are ordinary objects that we see and use daily. To form the dataset, I downloaded 1200 images for each category from ImageNet \cite{imagenet_cvpr09}. In order to solve my problem, I use pretrained weights of convolution layers from original VGG16 model \cite{WeightsVGG:2016} and modify and retrain the fully connected layers (figure \ref{fig:transferedVgg16}). Currently, I obtained a $\approx88\%$ accuracy on test set.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/transferedVgg16}
+	\caption{Transfer Learning from VGG16 model}
+	\label{fig:transferedVgg16}
+\end{figure}

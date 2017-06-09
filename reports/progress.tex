@@ -39,16 +39,16 @@ Below is the list of activities to achieve this current state:
 \subsection{ASR system}
 Firstly, I wanted a open-source and offline solution for the automatic speech recognition system. I tried out several solutions and also thinked of implementing my own ASR system with deep learning. However, there were a few problems for this approach:
 \begin{enumerate}
-	\item Open-source software for ASR like CMUSphinx \cite{CMUSphinx:2017} and Kaldi \cite{Kaldi:2017} are not good enough. Particularly, they perform quite bad to non-native speakers. And it's not easy to use these libraries.
-	\item Build a ASR system from scratch using deep learning is feasible but we will not likely to have a good ASR system. The main reason is the lack of data and powerful ressource for training.
+	\item As a non-native speaker, I found open-source software for ASR like CMUSphinx \cite{CMUSphinx:2017} and Kaldi \cite{Kaldi:2017} are not good enough. For example, I often get "tune rite" when I say "turn right". In addition, it's not easy to use these libraries. We have to go through long process of installation and we hardly find documentations about their usage.
+	\item To build an ASR system from scratch using deep learning is feasible but we would be unlikely to have a good ASR system at the level of Amazon Alexa, Apple Siri or Google Speech. The main reason is the lack of data and powerful ressource for training.
 \end{enumerate}
-Therefore, I decided to use Google Cloud speech service \cite{GoogleCloud:2017}. It's robust and easy to use: using its API, we send the audio content to the service and get back the text. One trade-off is the internet connection requirement and the system must be authorized to use Google Cloud service. However, it cuts the computation cost if we have a ASR server offline. Note that state of the art ASR system uses deep neural network then requires massive computations.
+Therefore, I decided to use Google Cloud speech service \cite{GoogleCloud:2017}. It is robust and easy to use: using its API, we send the audio content to the service and get back the text. One trade-off is the internet connection requirement and the system must be authorized to use Google Cloud service. However, it cuts the computation cost of using an ASR server locally. Note that state of the art ASR system uses deep neural network which requires massive computations.
 
 \subsection{Information Extraction}
 Initially, I started processing the text input with the traditional approach where natural language processing tools are used. Given a sentence, I used Part-Of-Speech (POS) tagger to tag each word into categories like verb, nouns, number, adverb, adjective, etc. And based on these tags, I could determine the action (the verb), and its parameters (number, nouns). However, there were a few problems as follow:
 \begin{enumerate}
 	\item There is no perfect POS tagger and its performance depends on its training data. Hence, it did not show good result in tagging command sentences (which hardly appear in training corpus).
-	\item People tend to use short commands such as: "backward X metres", "turn left" (the angle is 90 degree implicitly). Unfortunately, many of these short commands do not compose to a complete sentence. Therefore, POS tagger as well as other natural language processing algorithms can not perform well on incomplete sentence.
+	\item For movement, people tend to use short commands such as: "backward X metres", "turn left" (the angle is 90 degree implicitly). Unfortunately, many of these short commands do not form a complete sentence and POS tagger can not perform well on incomplete sentences.
 	\item The behavior of POS taggers are unpredicted and inconsistent. A minor change in input can lead to total different (and wrong) tags. This does not fit well with voice system where people can make minor grammatical mistakes or paralanguage ("um", "uh" utterances).
 \end{enumerate}
 Therefore, I switched to use a simpler string processing: 
