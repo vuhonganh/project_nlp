@@ -22,8 +22,8 @@ class Classifier(QThread):
         self.cur_img = None
 
         # load model and default graph
-        self.classifier = keras.models.load_model('/home/hav/workplace/vgg_transfer/resnet_512/model.h5')
-        self.graph = tf.get_default_graph()
+        self.classifier = keras.models.load_model('resnet_512.h5')
+        self.graph = tf.get_default_graph()  # REALLY IMPORTANT
 
     def __del__(self):
         self._abort = True
