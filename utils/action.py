@@ -7,6 +7,34 @@ def is_float(t):
         return False
 
 
+class ActionWhat:
+    def __init__(self, input_dict):
+        self.input_dict = input_dict
+        self.res_dict = {}
+
+    def __str__(self):
+        return self.input_dict["intent"] + ", " + str(self.input_dict["list_text"])
+
+    def _extract_info_strict(self):
+        """strictly follow the rules for WHAT intent: what is it"""
+        self.res_dict["intent"] = "UNK"
+        if len(self.input_dict["list_text"]) > 2:
+            if self.input_dict["list_text"][1] == "is" and self.input_dict["list_text"][2] == "it":
+                self.res_dict["intent"] = self.input_dict["intent"]
+    def do_act(self, robot):
+        # extract info procedure
+        self._extract_info_strict()
+        response = ""
+        img = None
+        if self.res_dict["intent"] == "UNK":
+            response += "Unknown command! Please check the rule"
+        else:
+            # get picture from camera
+            img = robot.take_photo()  # overwrite None if there is a photo
+            response += "Let me take a look!"
+        return response, img
+
+
 class ActionGo:
     """
     super Class that extracts information from intent and deal with it 

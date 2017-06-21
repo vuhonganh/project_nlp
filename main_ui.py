@@ -7,11 +7,11 @@ from utils.asr import STT
 from ui.ui_chat import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
 import sys
-from utils.action import ActionGo, ActionTurn
+from utils.action import ActionGo, ActionTurn, ActionWhat
 import cozmo
 # set Rules text
-rules = "go forward/backward X (millimeters) \nturn left/right X (degrees)"
-act_dict = {"go": ActionGo, "turn": ActionTurn}
+rules = "go forward/backward X (millimeters) \nturn left/right X (degrees)\nwhat is it"
+act_dict = {"go": ActionGo, "turn": ActionTurn, "what": ActionWhat}
 
 
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -53,14 +53,24 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         human_cmd = self.mleChat.text()
         self.mleChat.clear()
         self.human_log(human_cmd)
+
+        # read command and maps into an information dict
         info_dict = self.rd.read(human_cmd)
 
+        img = None  # buffer for image
         if info_dict["intent"] not in act_dict.keys():
             self.robot_log("Unknown command!")
         else:
             act = act_dict[info_dict["intent"]](info_dict)
-            robot_rep = act.do_act(self.robot)
+            if info_dict["intent"] == "what":
+                print("doing What intent")
+                robot_rep, img = act.do_act(self.robot)
+            else:
+                robot_rep = act.do_act(self.robot)
             self.robot_log(robot_rep)
+            if img is not None:
+                self.classifier_thread.activate(img)
+
 
     def human_log(self, text):
         self.teLog.setTextColor(QtGui.QColor('blue'))
@@ -110,7 +120,6 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
                                                                                         top3_class[1], top3_proba[1],
                                                                                         top3_class[2], top3_proba[2]))
 
-
     @QtCore.pyqtSlot(list)
     def sttReady(self, list_trans):
         print("stt ready")
@@ -132,7 +141,9 @@ def run(sdk_conn):
     qt_app = QtWidgets.QApplication(sys.argv)
     my_cozmo = sdk_conn.wait_for_robot()
     my_cozmo.drive_off_charger_on_connect = False
+    my_cozmo.camera.image_stream_enabled = True
     my_cozmo.camera.color_image_enabled = True
+
     # img = my_cozmo.world.latest_image
     this_chat = Chat(my_cozmo)
     this_chat.show()

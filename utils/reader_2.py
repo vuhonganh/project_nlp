@@ -19,15 +19,17 @@ class Reader2:
         text_list = nltk.word_tokenize(text.lower())
         # NOTE: consider can/could be another intent (question abt ability)
         # to_removes = ('please', 'can', 'you', '.', '!', '?', 'straight')
-        to_removes = ('please', '.', '!', '?', 'straight')
+        to_removes = ('please', '.', '!', '?', 'straight', 'so', 'well')
         res = [t for t in text_list if t not in to_removes]
         res = [self.syn_dict[t] if t in self.syn_dict.keys() else t for t in res]
         return res
 
     def read(self, text):
         self.res_dict["raw_text"] = text
+
         text_processed_list = self._preprocess(text)
         self.res_dict["list_text"] = text_processed_list
+
         if text_processed_list[0] == "go" and text_processed_list[1] == "to":
             self.res_dict["intent"] = "goto"
         else:

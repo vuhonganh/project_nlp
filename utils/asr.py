@@ -3,6 +3,7 @@ import tempfile
 import subprocess
 from google.cloud import speech
 import keras
+import tensorflow as tf
 import numpy as np
 
 classes_reader = ["apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard",
@@ -18,8 +19,11 @@ class Classifier(QThread):
         self._mutex = QMutex()
         self._abort = False
         self._condition = QWaitCondition()
-        self.classifier = keras.models.load_model('resnet_512.h5')
         self.cur_img = None
+
+        # load model and default graph
+        self.classifier = keras.models.load_model('/home/hav/workplace/vgg_transfer/resnet_512/model.h5')
+        self.graph = tf.get_default_graph()
 
     def __del__(self):
         self._abort = True
@@ -27,6 +31,8 @@ class Classifier(QThread):
 
     def activate(self, img_np_arr):
         self.cur_img = img_np_arr
+        print(type(self.cur_img))
+        print(self.cur_img.shape)
         self._condition.wakeAll()
 
     def run(self):
@@ -39,13 +45,15 @@ class Classifier(QThread):
             if self.cur_img is None:
                 continue
             # classify top3
+
             x = np.asarray([self.cur_img])
             res = ''
-            predictions = self.classifier.predict(x, batch_size=1)[0]  # note that predictions is a 2D array
-            idx_max = np.argsort(predictions)
-            top3 = idx_max[-1:-4:-1]
-            for idx in top3:
-                res += '%s:%.2f,' % (classes_reader[idx], predictions[idx])
+            with self.graph.as_default():
+                predictions = self.classifier.predict(x, batch_size=1)[0]  # note that predictions is a 2D array
+                idx_max = np.argsort(predictions)
+                top3 = idx_max[-1:-4:-1]
+                for idx in top3:
+                    res += '%s:%.2f,' % (classes_reader[idx], predictions[idx])
 
             # emit signal
             self.signal_classify_done.emit(res)

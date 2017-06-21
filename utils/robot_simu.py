@@ -1,7 +1,8 @@
 from turtle import Turtle
 import cozmo
 from cozmo.util import degrees, distance_mm, speed_mmps
-
+from scipy.misc import imread, imresize, imsave, imshow
+import time
 
 class Robot(Turtle):
 
@@ -56,3 +57,18 @@ class Robot(Turtle):
 
     def shut_down(self):
         self.getscreen().bye()
+
+    def take_photo(self):
+        if self.m_cozmo:
+            # self.m_cozmo.world.wait_for(cozmo.world.EvtNewCameraImage) - not work
+            cnt = 0
+            latest_img = None
+            while latest_img is None and cnt < 10:
+                latest_img = self.m_cozmo.world.latest_image
+                time.sleep(0.1)
+                cnt += 1
+            img = latest_img.raw_image
+            imsave('cur_img.JPEG', img)
+            img = imresize(img, (224, 224))
+            return img
+        return None
