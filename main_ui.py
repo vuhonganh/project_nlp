@@ -2,6 +2,7 @@ from utils import reader_2
 from utils import robot_simu
 from utils.asr import VoiceRec
 from utils.asr import RecThread
+from utils.asr import Classifier
 from utils.asr import STT
 from ui.ui_chat import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -41,6 +42,10 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stt_thread.signal_stt_done.connect(self.sttReady)
         self.stt_thread.start()
 
+        # classifer thread
+        self.classifier_thread = Classifier()
+        self.classifier_thread.signal_classify_done.connect(self.classifyReady)
+        self.classifier_thread.start()
         # make cursor focus on chat line
         self.mleChat.setFocus()
 
@@ -87,6 +92,23 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pbVoice.setEnabled(True)
         self.teLog.insertPlainText('LOG: sound is recorded to ' + filename + '\n')
         self.stt_thread.activate(filename)
+
+    @QtCore.pyqtSlot(str)
+    def classifyReady(self, top3_str):
+        print("classification done")
+        top3_list = top3_str.split(sep=',')
+        top3_class = []
+        top3_proba = []
+        for c_p in top3_list:
+            if len(c_p) > 0:
+                c_p_split = c_p.split(sep=':')
+                top3_class.append(c_p_split[0])
+                top3_proba.append(float(c_p_split[1]))
+        rep = 'I think it is a(n) %s\n' % top3_class[0]
+        self.teLog.insertPlainText(rep)
+        self.teLog.insertPlainText('LOG: top 3 classes: %s (%f), %s (%f), %s (%f)\n' % (top3_class[0], top3_proba[0],
+                                                                                        top3_class[1], top3_proba[1],
+                                                                                        top3_class[2], top3_proba[2]))
 
 
     @QtCore.pyqtSlot(list)
