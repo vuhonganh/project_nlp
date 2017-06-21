@@ -72,3 +72,7 @@ class Robot(Turtle):
             img = imresize(img, (224, 224))
             return img
         return None
+
+    def say_text(self, text):
+        if self.m_cozmo:
+            self.m_cozmo.say_text(text)

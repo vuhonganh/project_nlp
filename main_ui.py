@@ -29,7 +29,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # FIRST try
         self.voice_thread = None
-        self.voice_thread = VoiceRec(recording_time=5)
+        self.voice_thread = VoiceRec(recording_time=3)
         self.voice_thread.signal_recording_done.connect(self.recordReady)
         self.voice_thread.start()
 
@@ -119,6 +119,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.teLog.insertPlainText('LOG: top 3 classes: %s (%f), %s (%f), %s (%f)\n' % (top3_class[0], top3_proba[0],
                                                                                         top3_class[1], top3_proba[1],
                                                                                         top3_class[2], top3_proba[2]))
+        self.robot.say_text(top3_class[0])
 
     @QtCore.pyqtSlot(list)
     def sttReady(self, list_trans):
