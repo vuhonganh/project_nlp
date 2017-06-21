@@ -2,7 +2,57 @@ from PyQt5.QtCore import pyqtSignal, QThread, QMutex, QMutexLocker, QWaitConditi
 import tempfile
 import subprocess
 from google.cloud import speech
+import keras
+import numpy as np
 
+classes_reader = ["apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard",
+                  "banana", "key", "mug", "pear", "orange"]
+
+
+# Image Classifier thread
+class Classifier(QThread):
+    signal_classify_done = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self._mutex = QMutex()
+        self._abort = False
+        self._condition = QWaitCondition()
+        self.classifier = keras.models.load_model('resnet_512.h5')
+        self.cur_img = None
+
+    def __del__(self):
+        self._abort = True
+        self.wait()
+
+    def activate(self, img_np_arr):
+        self.cur_img = img_np_arr
+        self._condition.wakeAll()
+
+    def run(self):
+        while True:
+            if self._abort:
+                return
+            self._mutex.lock()
+            self._condition.wait(self._mutex)
+            # Doing thing
+            if self.cur_img is None:
+                continue
+            # classify top3
+            x = np.asarray([self.cur_img])
+            res = ''
+            predictions = self.classifier.predict(x, batch_size=1)[0]  # note that predictions is a 2D array
+            idx_max = np.argsort(predictions)
+            top3 = idx_max[-1:-4:-1]
+            for idx in top3:
+                res += '%s:%.2f,' % (classes_reader[idx], predictions[idx])
+
+            # emit signal
+            self.signal_classify_done.emit(res)
+            # DONE DOING THING
+            self._mutex.unlock()
+
+# Speech To Text thread
 class STT(QThread):
     signal_stt_done = pyqtSignal(list)
 
