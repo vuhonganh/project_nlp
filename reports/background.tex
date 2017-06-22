@@ -1,9 +1,14 @@
 %From diagram \ref{fig:diagramSystem}, my system has four main blocks. This chapter is dedicated to describe functionalities of these components as well as the background behind.
-This chapter is dedicated to describe briefly theoretical background as well as alternative solutions to subtasks of the project. We will cover automatic Speech-To-Text, Information Extraction, to Deep Convolutional Neural Network to classify image etc.
+This chapter is dedicated to describe briefly theoretical background as well as alternative solutions to subtasks of the project. We will cover from automatic Speech-To-Text, Information Extraction, to Deep Convolutional Neural Network to classify image etc.
 \section{Automatic Speech Recognition system}
 Automatic Speech Recognition (ASR) system is the core part in any voice command system. Given the audio input, ASR system will output the text form of the input for later processing. Briefly, the audio input is in form of a sound wave over the recording time. It's sampled at a rate of 16000Hz which is enough for recognition. Then this sound wave is chunked at each 20ms and transformed to a spectrogram by using Fourier transform. This then be feeded to a kind of recurrent neural network \cite{Medium:2016}. The output at each time slot is the characters and we normally have a language model to refine this. 
 
-Note that to build an ASR system that performs on the level of Amazon Alexa or Google Now, we need a lot of training data in both quantity (hundreds of thousands hours of spoken audio) and diversity (native speakers, non-native speakers, with or without background noise, etc.) Hence the attention for this project will be on the application.
+Note that to build an ASR system that performs at the level of Amazon Alexa or Google Now, we need a lot of training data in both quantity (hundreds of thousands hours of spoken audio) and diversity (native speakers, non-native speakers, with or without background noise, etc.) And this kind of data is not available. As the main objective of the project is to use voice to control the robot, not to build a decent ASR system hence I decided to use existing softwares. I explored two solutions: open source systems and Google cloud API.
+\subsection{Open-source ASR}
+I tried several open sources software such as:
+\begin{enumerate}
+	\item Kaldi \cite{Kaldi:2017}, CMUSphinx
+\end{enumerate}
 
 \section{Neural Network Overview}
 Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly convolutional neural networks which is used to classify image.
