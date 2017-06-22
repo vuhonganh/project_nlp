@@ -1,14 +1,16 @@
 %From diagram \ref{fig:diagramSystem}, my system has four main blocks. This chapter is dedicated to describe functionalities of these components as well as the background behind.
 This chapter is dedicated to describe briefly theoretical background as well as alternative solutions to subtasks of the project. We will cover from automatic Speech-To-Text, Information Extraction, to Deep Convolutional Neural Network to classify image etc.
+
 \section{Automatic Speech Recognition system}
 Automatic Speech Recognition (ASR) system is the core part in any voice command system. Given the audio input, ASR system will output the text form of the input for later processing. Briefly, the audio input is in form of a sound wave over the recording time. It's sampled at a rate of 16000Hz which is enough for recognition. Then this sound wave is chunked at each 20ms and transformed to a spectrogram by using Fourier transform. This then be feeded to a kind of recurrent neural network \cite{Medium:2016}. The output at each time slot is the characters and we normally have a language model to refine this. 
 
-Note that to build an ASR system that performs at the level of Amazon Alexa or Google Now, we need a lot of training data in both quantity (hundreds of thousands hours of spoken audio) and diversity (native speakers, non-native speakers, with or without background noise, etc.) And this kind of data is not available. As the main objective of the project is to use voice to control the robot, not to build a decent ASR system hence I decided to use existing softwares. I explored two solutions: open source systems and Google cloud API.
+Note that to build an ASR system that performs at the level of Amazon Alexa or Google Now, we need a lot of training data in both quantity (hundreds of thousands hours of spoken audio) and diversity (native and non-native speakers, with and without background noise, etc.) And this kind of data is not available. As the main objective of the project is to use voice to control the robot, not to build a decent ASR system hence I decided to use existing softwares. I explored two solutions: open source systems and Google Cloud.
+
 \subsection{Open-source ASR}
-I tried several open sources software such as:
-\begin{enumerate}
-	\item Kaldi \cite{Kaldi:2017}, CMUSphinx
-\end{enumerate}
+I tried several open-source softwares such as Kaldi \cite{Kaldi:2017}, CMUSphinx \cite{CMUSphinx:2017} and Deep Speech Nervana \cite{DeepSpeech:2017}. As a non-native speaker, I found that they do not perform at an adequate level. For example, I often get "tune rite" when I say "turn right". In addition, it's not easy to use the libraries because long installation processes are required and proper documentations of their usage are limited.
+
+\subsection{Google Cloud Speech API}
+My alternative solution is to use a cloud service Google Speech API \cite{GoogleCloud:2017}. Although the system needs to have internet access, it provides qualitative speech recognition and easy to use: we send the audio content and get back the text. By this, we also cut the computation cost of using an ASR server locally. Note that state of the art ASR systems use deep neural network which requires massive computations and resources. For those reasons, I chose to use Google Speech API in my system.
 
 \section{Neural Network Overview}
 Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly convolutional neural networks which is used to classify image.
@@ -37,7 +39,7 @@ Image inputs usually have a 3D shape: width, height and 3 color channels (RGB). 
 	\item We apply activation function ReLU to current tensor.
 	\item We sub-sample the current tensor to keep strongest features and reduce tensor size. We have final output tensor of size $w_i * h_i *d_i$
 \end{itemize}  
-The process is illustrated in figure \ref{fig:convNetsimple}. And a common method for sub-sampling is max-pooling is shown in figure \ref{fig:maxpool}. It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
+The process is illustrated in figure \ref{fig:convNetsimple}. And a common method for sub-sampling called \tbf{max-pooling} shown in figure \ref{fig:maxpool}. It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/convNetsimple}
@@ -50,7 +52,14 @@ The process is illustrated in figure \ref{fig:convNetsimple}. And a common metho
 	\caption{Max-pooling to reduce tensor size and keep strongest features.}
 	\label{fig:maxpool}
 \end{figure}
-After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers. In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
+
+After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers (figure \ref{fig:dropout}). In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/dropout}
+	\caption{Dropout helps to reduce overfitting and ensemble models. Image taken from original paper \cite{Srivastava:2014:DSW:2627435.2670313}.}
+	\label{fig:dropout}
+\end{figure}
 
 \subsection{Loss Function}
 We are left to define a loss function: which allows us to train a machine learning model by updating parameters in order to minimise loss. For classification problems we often use the popular cross-entropy loss function. Consider an input indexed $i$, then its cross-entropy loss is
