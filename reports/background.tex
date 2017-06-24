@@ -12,17 +12,54 @@ I tried several open-source softwares such as Kaldi \cite{Kaldi:2017}, CMUSphinx
 \subsection{Google Cloud Speech API}
 My alternative solution is to use a cloud service Google Speech API \cite{GoogleCloud:2017}. Although the system needs to have internet access, it provides qualitative speech recognition and easy to use: we send the audio content and get back the text. By this, we also cut the computation cost of using an ASR server locally. Note that state of the art ASR systems use deep neural network which requires massive computations and resources. For those reasons, I chose to use Google Speech API in my system.
 
+\section{Information Extraction}
+The next task is to extract information from the recognised text. For example, figure (\ref{fig:InfoExt}) illustrates this process. Given a command, the most important thing is to know which \tbf{intent} it refers to. Secondly, extract the \tbf{properties} (i.e. parameters) that go with it, such as \textit{direction, quantity, etc.} I explored two solutions for this problem: \tit{Part-Of-Speech (POS) tagging} and \tit{string processing}.
+
+\subsection{Part-Of-Speech Tagging}
+Part-Of-Speech tagging is the process of assigning words in the given text to a particular part of speech (such as \tit{nouns, verbs, adjectives, adverbs} etc.), based on both definition and contexts. There are various algorithms to solve POS tagging \cite{Jurafsky:2009:SLP:1214993} and there exist available natural language processing software that has POS tagger embedded, such as NLTK \cite{Loper:2002:NNL:1118108.1118117}, Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}. 
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.6\hsize]{./figures/InfoExt}
+	\caption{Illustration of information extraction for movement commands.}
+	\label{fig:InfoExt}
+\end{figure}
+
+The reason why POS tagging can be helpful is that it classifies words into categories so we can pay attention to key words such as \tit{verbs} (tag VB), \tit{nouns} (tag NN or NNS), \tit{adverb} (tag ADV). For example, the verbs in a command are likely to be the \tbf{intent} (turn, move, go, etc.), nouns and adverbs are often \tbf{properties} (left, right, X degrees, Y centimeters, etc.). However, for our specific problem, I found this approach unrobust because of the following reasons:
+\begin{itemize}
+	\item There is no perfect POS tagger and its performance depends on its training data. Hence, it did not show good result in tagging command sentences (which hardly appear in training corpus).
+	\item For movement, people tend to use short commands such as: ”backward X metres”, ”turn left” (the angle is 90 degree implicitly). Unfortunately, many of these short commands do not form a complete sentence and POS taggers can not perform well on incomplete sentences.
+\end{itemize}
+Figure \ref{fig:POSTagLimits} illustrates the above idea. For example, POS tagger predicts word \tbf{turn} as a noun instead of a verb, and predicts word \tbf{left} as a verb in past tense instead of an adverb. Such misclassifications are frequent and they make the system vunerable. That's the reason why I switched to the alternative approach: string processing.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.7\hsize]{./figures/POSTagLimits}
+	\caption{Limitation of POSTaggers: it does not perform well on sentences that describe commands or orders since those hardly appear in training corpus.}
+	\label{fig:POSTagLimits}
+\end{figure}
+
+\subsection{String Processing}
+Instead of tagging words to categories and dealing with key words (verbs, adverbs, nouns), I just analyse the text by following steps:
+\begin{itemize}
+	\item Remove redundant words (please, so, well)
+	\item Define a synonyms set for my problem and replace synonym words by its representator. For example: \tit{go, move, travel} all map to \tit{go}, \tit{turn, rotate, spin} all map to \tit{turn}, \tit{right, right-side} all map to \tit{right} and so on. By doing this, I have limited and specific words describing \tbf{intents} and \tbf{directions}.
+	\item Search for intent words, the directions and check for words describing quantities. Those tokens are in digit format and normally appear at fixed positions corresponding to current intent.
+\end{itemize}
+
+This approach is simple but it gives works robustly and consistently for our specific information extraction problem.
+
 \section{Neural Network Overview}
-Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly convolutional neural networks which is used to classify image.
+Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly fully connected and convolutional neural networks which perform best in image classification. For a more rigorous treatment, please refer to Deep Learning book \cite{Goodfellow-et-al-2016} or chapter 5 of Pattern Recognition and Machine Learning book \cite{Bishop:2006:PRM:1162264}.
 \subsection{Fully-connected Neural Network}
-A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure \ref{fig:fcNet}: The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
+A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure (\ref{fig:fcNet}): The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/fcNet}
 	\caption{A simple fully connected neural network which classifies an input data into 3 categories using softmax classifier and rectified linear unit activation function (ReLU).}
 	\label{fig:fcNet}
 \end{figure}
-In practice, fully-connected layers are combined with other blocks and they are usually the final block of a classification model. For example, figure \ref{fig:convNet1} shows a simple convolutional neural network with fully-connected layer at the end to classify the input image.
+In practice, fully-connected layers are combined with other blocks and they are usually the final block of a classification model. For example, figure (\ref{fig:convNet1}) shows a simple convolutional neural network with fully-connected layer at the end to classify the input image.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/convNet1}
@@ -39,7 +76,7 @@ Image inputs usually have a 3D shape: width, height and 3 color channels (RGB). 
 	\item We apply activation function ReLU to current tensor.
 	\item We sub-sample the current tensor to keep strongest features and reduce tensor size. We have final output tensor of size $w_i * h_i *d_i$
 \end{itemize}  
-The process is illustrated in figure \ref{fig:convNetsimple}. And a common method for sub-sampling called \tbf{max-pooling} shown in figure \ref{fig:maxpool}. It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
+The process is illustrated in figure (\ref{fig:convNetsimple}). And a common method for sub-sampling called \tbf{max-pooling} shown in figure (\ref{fig:maxpool}). It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/convNetsimple}
@@ -53,7 +90,7 @@ The process is illustrated in figure \ref{fig:convNetsimple}. And a common metho
 	\label{fig:maxpool}
 \end{figure}
 
-After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers (figure \ref{fig:dropout}). In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
+After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers (figure (\ref{fig:dropout})). In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.8\hsize]{./figures/dropout}
@@ -65,18 +102,25 @@ After several convolution layers, we flatten the tensor to put into a fully conn
 We are left to define a loss function: which allows us to train a machine learning model by updating parameters in order to minimise loss. For classification problems we often use the popular cross-entropy loss function. Consider an input indexed $i$, then its cross-entropy loss is
 \begin{align}
 \label{form:CELoss}
-L_i(s) = -\log(\frac{e^{s_{y_i}}}{\sum_{k=1}^{N}e^{s_k}}) = -s_{y_i} + \log\sum_{k=1}^{N}e^{s_k}
+L_i = -\log(\frac{e^{s^{(i)}_{y_i}}}{\sum_{k=1}^{N}e^{s^{(i)}_k}}) = -s^{(i)}_{y_i} + \log\sum_{k=1}^{N}e^{s^{(i)}_k}
 \end{align}
-where $y_i$ is its ground-truth label, and $s$ denotes its score at the last layer (see figure \ref{fig:fcNet}). We can see from formula \ref{form:CELoss} that if the score for ground-truth label gets bigger then the loss gets smaller.
-
-Now, given the loss function, we will use stochastic gradient descent to minimise it. There is one hyperparameter related to this optimisation technique which is the learning rate.
+where $y_i$ is its ground-truth label, $s^{(i)}$ denotes its score at the last layer and $N$ is the number of classes (see figure (\ref{fig:fcNet})). We can see from formula (\ref{form:CELoss}) that if the score for ground-truth label gets bigger then the loss gets smaller. Next, for each iteration, we apply formula (\ref{form:CELoss}) on a batch of training data $B$ (of cardinal $|B|$):
+\begin{align}
+L_B = \frac{1}{|B|}\sum_{i \in B} \bigg(-s^{(i)}_{y_i} + \log\sum_{k=1}^{N}e^{s^{(i)}_k}\bigg)
+\end{align}
+and use stochastic gradient descent \cite{wiki:SGD} to update the parameters accordingly:
+\begin{align}
+W^{(n+1)}_i &= W^{(n)}_i - \alpha \frac{\partial L_B}{\partial W^{n}_i}\\
+b^{(n+1)}_i &= b^{(n)}_i - \alpha \frac{\partial L_B}{\partial b^{n}_i}
+\end{align}
+where $W_i, b_i$ are parameters of the model (weights and biases), $n$ denotes number of iteration and $\alpha$ is learning rate - a hyperparameter of the model. The gradient is computed by algorithm back-propagation. For more details, please refer to Deep Learning book \cite{Goodfellow-et-al-2016} or chapter 5 of Pattern Recognition and Machine Learning \cite{Bishop:2006:PRM:1162264}.
 
 \subsection{Train, validate and test}
-To train and validate a machine learning model, we usually split the dataset into 3 parts: training set ($\approx56\%$), validation set ($\approx14\%$) and test set ($\approx30\%$). We will use training dataset to train the model (in our case they are all the parameters $W_i$, $b_i$) and use the validation dataset to tune other hyperparameters: learning rates, dropout probability, hidden layer sizes, number of filters etc. Once we have done our best on the validation set, we run a run the model only once on the test dataset and obtain the test accuracy. This figure will be our model performance. 
+To train and validate a machine learning model, we usually split the dataset into 3 parts: training set ($\approx56\%$), validation set ($\approx14\%$) and test set ($\approx30\%$). We will use training dataset to train the model (in our case they are all the parameters $W_i$, $b_i$) and use the validation dataset to tune other hyperparameters: learning rates, dropout probability, hidden layer sizes, number of filters etc. Once we have done our best on the validation set, we run the model only once on the test dataset to obtain the test accuracy. This figure will be our model performance. 
 
 \section{Image Classification}
 \subsection{Overview}
-\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure \ref{fig:ImClasschallenges}):
+\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure (\ref{fig:ImClasschallenges})):
 \begin{enumerate}
 	\item Viewpoint variation: the same object can be captured at different camera pose.
 	\item Illumination conditions: computers only see the pixel values and minor changes in illumination can result in totally different pixel values. 
@@ -94,34 +138,41 @@ To train and validate a machine learning model, we usually split the dataset int
 \label{fig:ImClasschallenges}
 \end{figure}
 \subsection{State-of-the-art Solution}
-The family of the best solutions for image classification up to now is deep convolutional neural networks (CNN). Figure \ref{fig:imagenetTop5Err} illustrates this point. Below are some brief explaination for its success:
+Each year, there is a ImageNet Large Scale Visual Recognition Competition (ILSVRC) \cite{ILSVRC15} where research groups from around the world participate and submit their state of the art solution to multiple visual recognition problems. Image Classification is only one task in the challenge. Since 2012, the best solutions for image classification are always deep convolutional neural networks (CNN). Figure (\ref{fig:imagenetTop5Err}) illustrates this point. Below are some brief explaination for its success:
 \begin{itemize}
 	\item Deep neural networks accomodate non-linearity properties through activation layers. This makes the system more flexible and able to prioritise important features.
 	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters can extract from input image many types of features such as: edge, shape, colors etc. (for more details see \cite{DeepVis:2015})
-	\item Convolutional layers act as features builder, and given enough data, machines do this job better than a human (figure \ref{fig:imagenetTop5Err}).
+	\item Convolutional layers act as features builder, and given enough data, machines do this job better than human beings (5.1\% top 5 error rate).
 \end{itemize}
-
+In my experiment, I explored the following models:
+\begin{itemize}
+	\item VGG16 \cite{DBLP:journals/corr/SimonyanZ14a} - a model of VGG group from Oxford University, one winner of ImageNet competition in 2014.
+	\item Resnet50 \cite{DBLP:journals/corr/HeZRS15} - a model from Microsoft research group, winner of ImageNet competition in 2015.
+	\item Xception \cite{DBLP:journals/corr/Chollet16a} - a model based on GoogleNet \cite{DBLP:journals/corr/SzegedyVISW15} (winner of ImageNet competition in 2014).
+\end{itemize}
+Overall, Resnet50 performs the best with better accuracy and shorter computational time.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.9\hsize]{./figures/imagenetTop5Err}
-\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2016. We can note a huge improvement from traditional approaches which use hand-crafted computer vision classifiers (CV) to deep convolutional neural network. VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is the winner in 2014. Its performance nearly equals to human beings.}
+\includegraphics[width=0.8\hsize]{./figures/imagenetTop5}
+\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2015. We can note a huge improvement from traditional approaches which use hand-crafted computer vision features (2010, 2011) to deep convolutional neural network (2012). VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is one of the winners in 2014. Its performance nearly equals to human beings (5.1\%). Resnet model \cite{DBLP:journals/corr/HeZRS15} is the winner in 2015. \tit{Figure copyright Kaiming He.}}
 \label{fig:imagenetTop5Err}
 \end{figure}
 
-\subsection{Transfer Learning from VGG16 model}
-To solve my classification problem, I propose to use the VGG16 model \cite{DBLP:journals/corr/SimonyanZ14a} with some modifications at the fully connected layers as we do not have to classify 1000 objects. The original VGG16 model is illustrated in figure \ref{fig:originalVgg16}. Two reasons of using VGG16 model are its good performance and its simplicity compared to other successful models (Microsoft ResNet \cite{DBLP:journals/corr/HeZRS15}, Google Inception \cite{DBLP:journals/corr/SzegedyVISW15}, etc.)
+\subsection{Transfer Learning}
+Transfer Learning is a technique in Machine Learning where knowledge gain during training in one type of problem is used to train in other similar problems. This helps saving time and resource by avoiding training model from scratch. The technique is intensively used in deep neural network models as those normally have a lot of parameters and training from scratch can take weeks. Therefore, to solve our image classification problem, I applied transfer learning on the 3 models discussed in previous subsection. The transfer learning process for image classification problem (figure (\ref{fig:transferLearning})) is described as following:
+\begin{enumerate}
+	\item Initialize the model by using its pretrained weights and biases. Those parameters are provided by their authors.
+	\item Cut and replace the fully connected layers of the original model by our \tit{appropriate} fully connected layers. For example, original models classify 1000 objects but our has only 12 categories to classify.
+	\item Freeze all layers in convolutional blocks and start training new fully connected layers for a while (10-20 epochs).
+	\item Unfreeze final convolutional layers and start fine-tuning model (i.e. training with smaller learning rate).
+\end{enumerate}
+
 \begin{figure}[tb]
 	\centering
-	\includegraphics[width=0.9\hsize]{./figures/originalVgg16}
-	\caption{Original VGG16 model}
-	\label{fig:originalVgg16}
+	\includegraphics[width=0.9\hsize]{./figures/transferLearning}
+	\caption{Transfer Learning process}
+	\label{fig:transferLearning}
 \end{figure}
 
-In my object finding problem, I propose to classify about 12 categories: "apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange". They are ordinary objects that we see and use daily. To form the dataset, I downloaded 1200 images for each category from ImageNet \cite{imagenet_cvpr09}. In order to solve my problem, I use pretrained weights of convolution layers from original VGG16 model \cite{WeightsVGG:2016} and modify and retrain the fully connected layers (figure \ref{fig:transferedVgg16}). Currently, I obtained a $\approx88\%$ accuracy on test set.
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=0.9\hsize]{./figures/transferedVgg16}
-	\caption{Transfer Learning from VGG16 model}
-	\label{fig:transferedVgg16}
-\end{figure}
+Remind that our problem is to classify objects belongs to 12 categories: \tit{"apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange"}. They are ordinary things that we see and use daily. To form the dataset, I downloaded 1200 images for each category from ImageNet \cite{imagenet_cvpr09}.
