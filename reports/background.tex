@@ -13,7 +13,8 @@ I tried several open-source softwares such as Kaldi \cite{Kaldi:2017}, CMUSphinx
 My alternative solution is to use a cloud service Google Speech API \cite{GoogleCloud:2017}. Although the system needs to have internet access, it provides qualitative speech recognition and easy to use: we send the audio content and get back the text. By this, we also cut the computation cost of using an ASR server locally. Note that state of the art ASR systems use deep neural network which requires massive computations and resources. For those reasons, I chose to use Google Speech API in my system.
 
 \section{Information Extraction}
-The next task is to extract information from the recognised text. For example, figure (\ref{fig:InfoExt}) illustrates this process. Given a command, the most important thing is to know which \tbf{intent} it refers to. Secondly, extract the \tbf{properties} (i.e. parameters) that go with it, such as \textit{direction, quantity, etc.} I explored two solutions for this problem: \tit{Part-Of-Speech (POS) tagging} and \tit{string processing}.
+\label{sec:InfoExt}
+The next task is to extract information from the recognised text. For example, figure \ref{fig:InfoExt} illustrates this process. Given a command, the most important thing is to know which \tbf{intent} it refers to. Secondly, extract the \tbf{properties} (i.e. parameters) that go with it, such as \textit{direction, quantity, etc.} I explored two solutions for this problem: \tit{Part-Of-Speech (POS) tagging} and \tit{string processing}.
 
 \subsection{Part-Of-Speech Tagging}
 Part-Of-Speech tagging is the process of assigning words in the given text to a particular part of speech (such as \tit{nouns, verbs, adjectives, adverbs} etc.), based on both definition and contexts. There are various algorithms to solve POS tagging \cite{Jurafsky:2009:SLP:1214993} and there exist available natural language processing software that has POS tagger embedded, such as NLTK \cite{Loper:2002:NNL:1118108.1118117}, Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}. 
@@ -52,14 +53,14 @@ This approach is simple but it gives works robustly and consistently for our spe
 \section{Neural Network Overview}
 Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly fully connected and convolutional neural networks which perform best in image classification. For a more rigorous treatment, please refer to Deep Learning book \cite{Goodfellow-et-al-2016} or chapter 5 of Pattern Recognition and Machine Learning book \cite{Bishop:2006:PRM:1162264}.
 \subsection{Fully-connected Neural Network}
-A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure (\ref{fig:fcNet}): The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
+A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure \ref{fig:fcNet}: The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/fcNet}
 	\caption{A simple fully connected neural network which classifies an input data into 3 categories using softmax classifier and rectified linear unit activation function (ReLU).}
 	\label{fig:fcNet}
 \end{figure}
-In practice, fully-connected layers are combined with other blocks and they are usually the final block of a classification model. For example, figure (\ref{fig:convNet1}) shows a simple convolutional neural network with fully-connected layer at the end to classify the input image.
+In practice, fully-connected layers are combined with other blocks and they are usually the final block of a classification model. For example, figure \ref{fig:convNet1} shows a simple convolutional neural network with fully-connected layer at the end to classify the input image.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/convNet1}
@@ -76,7 +77,7 @@ Image inputs usually have a 3D shape: width, height and 3 color channels (RGB). 
 	\item We apply activation function ReLU to current tensor.
 	\item We sub-sample the current tensor to keep strongest features and reduce tensor size. We have final output tensor of size $w_i * h_i *d_i$
 \end{itemize}  
-The process is illustrated in figure (\ref{fig:convNetsimple}). And a common method for sub-sampling called \tbf{max-pooling} shown in figure (\ref{fig:maxpool}). It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
+The process is illustrated in figure \ref{fig:convNetsimple}. And a common method for sub-sampling called \tbf{max-pooling} shown in figure \ref{fig:maxpool}. It partitions each "slice" of the tensor into non-overlapping rectangles and choose the maximum value in each rectangle. Hence, we produce non-linearities and prioritise strongest features.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/convNetsimple}
@@ -90,7 +91,7 @@ The process is illustrated in figure (\ref{fig:convNetsimple}). And a common met
 	\label{fig:maxpool}
 \end{figure}
 
-After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers (figure (\ref{fig:dropout})). In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
+After several convolution layers, we flatten the tensor to put into a fully connected neural network for classification. Note that at these fully connected layers, we often use \textbf{dropout} which is a technique to reduce overfitting at fully connected layers because most of parameters present at these layers (figure \ref{fig:dropout}). In training time, we have a probability (normally $p=0.5$) of dropping out neurons in the fully connected layers from the network and then reinsert the dropped out nodes. We repeat that process for every forward and ackward pass. This will also bring a similar effect as model ensemble. In addition, dropout technique can also be used at convolution layers. For more detail about dropout, please refer to \cite{Srivastava:2014:DSW:2627435.2670313}.
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.8\hsize]{./figures/dropout}
@@ -104,7 +105,7 @@ We are left to define a loss function: which allows us to train a machine learni
 \label{form:CELoss}
 L_i = -\log(\frac{e^{s^{(i)}_{y_i}}}{\sum_{k=1}^{N}e^{s^{(i)}_k}}) = -s^{(i)}_{y_i} + \log\sum_{k=1}^{N}e^{s^{(i)}_k}
 \end{align}
-where $y_i$ is its ground-truth label, $s^{(i)}$ denotes its score at the last layer and $N$ is the number of classes (see figure (\ref{fig:fcNet})). We can see from formula (\ref{form:CELoss}) that if the score for ground-truth label gets bigger then the loss gets smaller. Next, for each iteration, we apply formula (\ref{form:CELoss}) on a batch of training data $B$ (of cardinal $|B|$):
+where $y_i$ is its ground-truth label, $s^{(i)}$ denotes its score at the last layer and $N$ is the number of classes (see figure \ref{fig:fcNet}). We can see from formula (\ref{form:CELoss}) that if the score for ground-truth label gets bigger then the loss gets smaller. Next, for each iteration, we apply formula (\ref{form:CELoss}) on a batch of training data $B$ (of cardinal $|B|$):
 \begin{align}
 L_B = \frac{1}{|B|}\sum_{i \in B} \bigg(-s^{(i)}_{y_i} + \log\sum_{k=1}^{N}e^{s^{(i)}_k}\bigg)
 \end{align}
@@ -120,7 +121,7 @@ To train and validate a machine learning model, we usually split the dataset int
 
 \section{Image Classification}
 \subsection{Overview}
-\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure (\ref{fig:ImClasschallenges})):
+\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure \ref{fig:ImClasschallenges}):
 \begin{enumerate}
 	\item Viewpoint variation: the same object can be captured at different camera pose.
 	\item Illumination conditions: computers only see the pixel values and minor changes in illumination can result in totally different pixel values. 
@@ -160,7 +161,8 @@ Overall, Resnet50 performs the best with better accuracy and shorter computation
 \end{figure}
 
 \subsection{Transfer Learning}
-Transfer Learning is a technique in Machine Learning where knowledge gain during training in one type of problem is used to train in other similar problems. This helps saving time and resource by avoiding training model from scratch. The technique is intensively used in deep neural network models as those normally have a lot of parameters and training from scratch can take weeks. Therefore, to solve our image classification problem, I applied transfer learning on the 3 models discussed in previous subsection. The transfer learning process for image classification problem (figure (\ref{fig:transferLearning})) is described as following:
+\label{sec:transferLearning}
+Transfer Learning is a technique in Machine Learning where knowledge gain during training in one type of problem is used to train in other similar problems. This helps saving time and resource by avoiding training model from scratch. The technique is intensively used in deep neural network models as those normally have a lot of parameters and training from scratch can take weeks. Therefore, to solve our image classification problem, I applied transfer learning on the 3 models discussed in previous subsection. The transfer learning process for image classification problem (figure \ref{fig:transferLearning}) is described as following:
 \begin{enumerate}
 	\item Initialize the model by using its pretrained weights and biases. Those parameters are provided by their authors.
 	\item Cut and replace the fully connected layers of the original model by our \tit{appropriate} fully connected layers. For example, original models classify 1000 objects but our has only 12 categories to classify.

@@ -1,23 +1,81 @@
-\section{Design}
+This chapter describes the user interface as well as some technical details of the implementation of the system. 
+\section{User Interface}
+The user interface (UI) between the user and the robot appears as a chat application. Figure \ref{fig:chatWindow} illustrates a text box of rules at first, followed by a box of chat dialogue and the message bar. User has 2 ways to interact: either texting or speaking (by using the \tit{Use Voice} button). 
 \begin{figure}[tb]
 	\centering
-	\includegraphics[width=0.9\hsize]{./figures/UIdesign}
-	\caption{Overview of the system}
+	\includegraphics[width=0.8\hsize]{./figures/chatWindow}
+	\caption{The chat window of the UI. There is a text box for reminding the rules of commands, followed by a text box of chat dialogue and the message bar.}
+	\label{fig:chatWindow}
+\end{figure}
+
+The UI is coded using PyQt - one Python binding for Qt cross-platform GUI. The backend behind is Python code because the robot SDK is based on Python3. Beside the real Cozmo robot, I provided a simple robot simulator that can draws the movement commands (figure \ref{fig:simulator}). This simulator is programmed using Turtle module in Python.
+
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/simulator}
+	\caption{Turtle module draws the movement commands. This is useful for testing the system when we don't have a real Cozmo robot.}
+	\label{fig:simulator}
+\end{figure}
+
+The overview of the system is described in figure \ref{fig:UIdesign}. The left right arrows are used to indicate the interaction between blocks. For example: User sends commands via User Interface and gets responses from here too.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/UIdesign}
+	\caption{Overview of the system.}
 	\label{fig:UIdesign}
 \end{figure}
 
+\section{Cozmo Robot}
+Cozmo (figure \ref{fig:cozmo}) is a great robot produced by Anki \cite{AnkiOfficial:2017}. Beside concise movement ability, it has already a QVGA camera (resolution $320 \times 240$) built-in with frame rate 15fps. Eventhough the camera is not good, it still gives us acceptable images and helps us avoid building a robot from scratch, which can be time consuming. 
 
-\begin{figure}[tb]
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/cozmo}
+	\caption{Cozmo robot that has concise movement, built-in QVGA camera as well as other features (LED screen, etc.)}
+	\label{fig:cozmo}
+\end{figure}
+
+
+The connection between Cozmo and our system is illustrated in figure \ref{fig:CozmoConnect}. Cozmo will connects to a mobile device (that has Cozmo application installed) via its own wifi. In my setup, the mobile device is an IPad. Then it is connected to our system (the computer) via a USB cable. Linux machines now can access iOS device (such as IPhone, IPad) through \tit{libimobiledevice} \cite{libimobiledevice}. The following steps summarize the process:
+\begin{enumerate}
+	\item Connect the mobile device to the system via USB.
+	\item Start Cozmo and connect the mobile device to the Wifi of Cozmo.
+	\item Enable SDK mode in Cozmo application on the mobile device.
+	\item Launch our program and start using it.
+\end{enumerate}
+\begin{figure}[!htb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/CozmoConnect}
 	\caption{Cozmo connects with the system via a mobile device that has Cozmo app installed.}
 	\label{fig:CozmoConnect}
 \end{figure}
 
-\section{Implementation}
-\begin{figure}[tb]
+\section{Reader and Action}
+Given the text command, we have a Reader instance that will do the preprocessing and extract information from it (discussed in subsection \ref{sec:InfoExt}). Based on each intents, we map it into an instance of corresponding Action. These Action classes are implemented to control the robot and the simulator to act correspondingly. Figure \ref{fig:readerAction} illustrates this process. 
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/readerAction}
+	\caption{Commands are parsed via a Reader object. Then they are handled accordingly via their corresponding Action objects.}
+	\label{fig:readerAction}
+\end{figure}
+
+
+\section{Threading}
+There are a few scenarios where we need to use threading in order to avoid freezing the user interface:
+\begin{itemize}
+	\item time to record the audio command: which can vary from 3 to 15 seconds
+	\item speech recognition task that sends audio command over the internet, time for doing this task depends to your inernet connection. However, in practice it's quite fast because the recorded file is about 100Kb.
+	\item classify image: ask robot to take a photo, and pass this image through a neural network model (discussed in subsection \ref{sec:transferLearning}) to get prediction of class probabilities.
+\end{itemize}
+
+\begin{figure}[!htb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/threads}
 	\caption{Threading}
 	\label{fig:threads}
 \end{figure}
+
+Figure \ref{fig:threads} illustrates the threading structure of the program. Initially, the main program will run these threads in background. Then, whenever user's command needs to use them, these threads are waken up to do their jobs. Note that record thread always works together with speech recognition thread. The idea of seperating them in 2 threads is for further development when we could probably try other speech recognizers.
