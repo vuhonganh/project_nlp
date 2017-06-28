@@ -178,3 +178,18 @@ Transfer Learning is a technique in Machine Learning where knowledge gain during
 \end{figure}
 
 Remind that our problem is to classify objects belongs to 12 categories: \tit{"apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange"}. They are ordinary things that we see and use daily. To form the dataset, I downloaded 1200 images for each category from ImageNet \cite{imagenet_cvpr09}.
+
+The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details about tensors and filters' shape. On the other hand, one example of applying transfer learning on VGG16 is shown in figure \ref{fig:transferedVgg16}. In this example, we modified the fully connected part and did not fine-tune the final convolutional block. Experimental results about fine-tuning will be given in chapter \ref{chap:ExpRes}.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/originalVgg16}
+	\caption{Original VGG16 model. There are 1000 categories to classify.}
+	\label{fig:originalVgg16}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/transferedVgg16}
+	\caption{An example of transfer learning applied on VGG16 model. Note that the fully connected part was modified compared to the original VGG16. In addition there are only 12 categories to classify here.}
+	\label{fig:transferedVgg16}
+\end{figure}
