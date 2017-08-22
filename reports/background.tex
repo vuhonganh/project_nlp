@@ -51,6 +51,7 @@ Instead of tagging words to categories and dealing with key words (verbs, adverb
 This approach is simple but it gives works robustly and consistently for our specific information extraction problem.
 
 \section{Neural Network Overview}
+\label{sec:neuralNet}
 Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly fully connected and convolutional neural networks which perform best in image classification. For a more rigorous treatment, please refer to Deep Learning book \cite{Goodfellow-et-al-2016} or chapter 5 of Pattern Recognition and Machine Learning book \cite{Bishop:2006:PRM:1162264}.
 \subsection{Fully-connected Neural Network}
 A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure \ref{fig:fcNet}: The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
@@ -120,6 +121,7 @@ where $W_i, b_i$ are parameters of the model (weights and biases), $n$ denotes n
 To train and validate a machine learning model, we usually split the dataset into 3 parts: training set ($\approx56\%$), validation set ($\approx14\%$) and test set ($\approx30\%$). We will use training dataset to train the model (in our case they are all the parameters $W_i$, $b_i$) and use the validation dataset to tune other hyperparameters: learning rates, dropout probability, hidden layer sizes, number of filters etc. Once we have done our best on the validation set, we run the model only once on the test dataset to obtain the test accuracy. This figure will be our model performance. 
 
 \section{Image Classification}
+\label{sec:imgClass}
 \subsection{Overview}
 \textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure \ref{fig:ImClasschallenges}):
 \begin{enumerate}
@@ -193,3 +195,7 @@ The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details
 	\caption{An example of transfer learning applied on VGG16 model. Note that the fully connected part was modified compared to the original VGG16. In addition there are only 12 categories to classify here.}
 	\label{fig:transferedVgg16}
 \end{figure}
+\section{Object Detection}
+\subsection{Problem Description}
+\subsection{State-of-the-art Solution}
+
