@@ -122,8 +122,8 @@ To train and validate a machine learning model, we usually split the dataset int
 
 \section{Image Classification}
 \label{sec:imgClass}
-\subsection{Overview}
-\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure \ref{fig:ImClasschallenges}):
+\subsection{Problem Description}
+\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It is directly related to the object finding problem. We will discuss further this point in section \ref{sec:objDetect}. Although the description is short, it is really challenging to achieve a high accuracy ($\geq$ 90\%) because of the following difficulties (figure \ref{fig:ImClasschallenges}):
 \begin{enumerate}
 	\item Viewpoint variation: the same object can be captured at different camera pose.
 	\item Illumination conditions: computers only see the pixel values and minor changes in illumination can result in totally different pixel values. 
@@ -137,15 +137,15 @@ To train and validate a machine learning model, we usually split the dataset int
 \begin{figure}[tb]
 \centering
 \includegraphics[width =0.9\hsize]{./figures/ImClasschallenges}
-\caption{Some challenges of Image Classification problem}
+\caption{Some challenges of Image Classification problem. Image source: \cite{cs231n}.}
 \label{fig:ImClasschallenges}
 \end{figure}
 \subsection{State-of-the-art Solution}
-Each year, there is a ImageNet Large Scale Visual Recognition Competition (ILSVRC) \cite{ILSVRC15} where research groups from around the world participate and submit their state of the art solution to multiple visual recognition problems. Image Classification is only one task in the challenge. Since 2012, the best solutions for image classification are always deep convolutional neural networks (CNN). Figure (\ref{fig:imagenetTop5Err}) illustrates this point. Below are some brief explaination for its success:
+Each year, there is an ImageNet Large Scale Visual Recognition Competition (ILSVRC) \cite{ILSVRC15} where research groups from around the world participate and submit their state of the art solution to multiple visual recognition problems. Image Classification is only one task in the challenge. There are 2 evaluations for this task: the top-1 and top-5 accuracies. While top-\tit{n} accuracy is the rate that your top \tit{n} predictions (i.e. the \tit{n} ones with highest probabilities) contain the ground truth label. Please note that, for this task, human beings achive only 5.1\% top-5 error rate, which equals to 94.9\% top-5 accuracy. Since 2012, the best solutions for image classification are always deep convolutional neural networks (CNNs). Figure (\ref{fig:imagenetTop5Err}) illustrates this point. Given the fundamental notions represented in section \ref{sec:neuralNet}, I restate below a brief explaination for the success of CNNs:
 \begin{itemize}
 	\item Deep neural networks accomodate non-linearity properties through activation layers. This makes the system more flexible and able to prioritise important features.
-	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters can extract from input image many types of features such as: edge, shape, colors etc. (for more details see \cite{DeepVis:2015})
-	\item Convolutional layers act as features builder, and given enough data, machines do this job better than human beings (5.1\% top 5 error rate).
+	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters can extract from input image many types of features such as: edge, shape, colors etc. (for more details please refer to \cite{DeepVis:2015})
+	\item Convolutional layers act as features builder, and given enough data, machines do this job better than human beings (from figure \ref{fig:imagenetTop5Err}, we can see that ResNet with 152 layers reaches 3.6\% error rate).
 \end{itemize}
 In my experiment, I explored the following models:
 \begin{itemize}
@@ -158,7 +158,7 @@ Overall, Resnet50 performs the best with better accuracy and shorter computation
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.8\hsize]{./figures/imagenetTop5}
-\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2015. We can note a huge improvement from traditional approaches which use hand-crafted computer vision features (2010, 2011) to deep convolutional neural network (2012). VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is one of the winners in 2014. Its performance nearly equals to human beings (5.1\%). Resnet model \cite{DBLP:journals/corr/HeZRS15} is the winner in 2015. \tit{Figure copyright Kaiming He.}}
+\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2015. We can note a huge improvement from traditional approaches which use hand-crafted computer vision features (2010, 2011) to deep convolutional neural network (2012). VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is one of the winners in 2014. Its performance nearly equals human beings (5.1\%). Resnet model \cite{DBLP:journals/corr/HeZRS15} is the winner in 2015. \tit{Figure copyright Kaiming He.}}
 \label{fig:imagenetTop5Err}
 \end{figure}
 
@@ -195,7 +195,28 @@ The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details
 	\caption{An example of transfer learning applied on VGG16 model. Note that the fully connected part was modified compared to the original VGG16. In addition there are only 12 categories to classify here.}
 	\label{fig:transferedVgg16}
 \end{figure}
+
+\section{Camera Model}
+\subsection{Cozmo's built-in camera}
+some details (reso), some images, some opinions
+\subsection{Pinhole Camera Projection}
+formula, related to real distance vs size
+
 \section{Object Detection}
+\label{sec:objDetect}
 \subsection{Problem Description}
-\subsection{State-of-the-art Solution}
+Image Classification presented in subsection \ref{sec:imgClass} is challenging, however, in reality, we are likely to deal with even more complex problem: input image contains multiple objects. The task is named \textbf{Object Detection} and formally, it can be described as follows:
+\begin{itemize}
+	\item \tbf{Input}: An image that may contain multiple objects, in terms of both category and quantity. 
+	\item \tbf{Output}: The original image with predicted objects. Each object is surrounded by a predicted bounding box.
+\end{itemize}
+
+
+TODO: add some links to the object finding here or in the camera model section
+
+We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
+\subsection{State-of-the-art Solutions}
+
+
+
 
