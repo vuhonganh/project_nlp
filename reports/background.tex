@@ -196,11 +196,98 @@ The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details
 	\label{fig:transferedVgg16}
 \end{figure}
 
-\section{Camera Model}
-\subsection{Cozmo's built-in camera}
-some details (reso), some images, some opinions
-\subsection{Pinhole Camera Projection}
-formula, related to real distance vs size
+\section{Camera Model and Distance Estimation}
+The robot will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/pinhole}
+	\caption{Pinhole camera model: note that $(u, v)$ are pixel coordinates on the image, $(x,y,z)$ represent object's position in camera's frame. Image source: \cite{c433}.}
+	\label{fig:pinhole}
+\end{figure}
+
+In general, we have to take into account that the focal-lengths might differ and the origin of pixel coordinates is the top left corner of the image. Thus, the mathematical formula of the model is the following:
+\begin{align}
+	\label{form:pinhole}
+\begin{bmatrix}
+	u \\
+	v
+\end{bmatrix} = \begin{bmatrix}
+f_1 & 0 \\
+0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+x/z\\
+y/z
+\end{bmatrix} + \begin{bmatrix}
+c_1 \\ c_2
+\end{bmatrix}
+\end{align}
+
+Let's go further by considering a rectangle which is parallel to the image plane at distance $z$. The top-left and bottom-right corners of rectangular are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively (figure \ref{fig:rectForm}). We can compute the width and height of the rectangle from these coordinates: $w = x_2 - x_1$, $h = y_2 - y_1$. Beside, from formula \ref{form:pinhole}, we have:
+\begin{align}
+	\label{form:dist0}
+	\begin{bmatrix}
+		u_1 \\
+		v_1
+	\end{bmatrix} = \begin{bmatrix}
+	f_1 & 0 \\
+	0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+x_1/z\\
+y_1/z
+\end{bmatrix} + \begin{bmatrix}
+c_1 \\ c_2
+\end{bmatrix}
+\hspace{0.5cm} \text{and} \hspace{0.5cm}
+	\begin{bmatrix}
+		u_2 \\
+		v_2
+	\end{bmatrix} = \begin{bmatrix}
+	f_1 & 0 \\
+	0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+x_2/z\\
+y_2/z
+\end{bmatrix} + \begin{bmatrix}
+c_1 \\ c_2
+\end{bmatrix}
+\end{align}
+
+We then deduce:
+\begin{align}
+	\begin{bmatrix}
+		u_2 - u_1\\
+		v_2 - v_1
+	\end{bmatrix} &= \begin{bmatrix}
+	f_1 & 0 \\
+	0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+(x_2 - x_1)/z\\
+(y_2 - y_1)/z
+\end{bmatrix} \nonumber\\
+\label{form:dist1}
+\rightarrow u_2 - u_1 &= f_1 \frac{x_2 - x_1}{z} \hspace{0.5cm} \text{and} \hspace{0.5cm} v_2 - v_1 = f_2 \frac{y_2 - y_1}{z} 
+\end{align}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.6\hsize]{./figures/rectForm}
+	\caption{A rectange at distance $z$ with top-left and bottom-right corners are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively. We deduce the width and height of this rectangle from the coordinates.}
+	\label{fig:rectForm}
+\end{figure}
+
+Note that the image of this rectangular is also a rectangular with width and height in pixel coordinates are: $w_{i} = u_2 - u_1$, $h_{i} = v_2 - v_1$. Combine this with formula \ref{form:dist1} we have:
+\begin{align}
+\label{form:dist2}
+z = f_1 * \frac{w}{w_i} \nonumber \\
+z = f_2 * \frac{h}{h_i}
+\end{align}
+In reality, these two function will not return a same result because of the measure errors as well as the simplicity of the camera model. Hence we could compute the average:
+\begin{align}
+z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i})
+\end{align}
+
+Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f_2$) and the image size of the rectangle ($w_i, h_i$), we can deduce the distance $z$. Now, given $z$ computed, we plug it into formula \ref{form:dist0} together with information of the image center ($c_1, c_2$), we can easily derive the position $(x_1, y_1)$ of the rectangle. All the camera's information mentioned above can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer.
 
 \section{Object Detection}
 \label{sec:objDetect}
@@ -213,6 +300,8 @@ Image Classification presented in subsection \ref{sec:imgClass} is challenging, 
 
 
 TODO: add some links to the object finding here or in the camera model section
+
+TODO: order of this section and the camera model section
 
 We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
 \subsection{State-of-the-art Solutions}
