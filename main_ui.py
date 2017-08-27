@@ -29,7 +29,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # FIRST try
         self.voice_thread = None
-        self.voice_thread = VoiceRec(recording_time=3)
+        self.voice_thread = VoiceRec(recording_time=8)
         self.voice_thread.signal_recording_done.connect(self.recordReady)
         self.voice_thread.start()
 
