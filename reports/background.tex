@@ -51,6 +51,7 @@ Instead of tagging words to categories and dealing with key words (verbs, adverb
 This approach is simple but it gives works robustly and consistently for our specific information extraction problem.
 
 \section{Neural Network Overview}
+\label{sec:neuralNet}
 Neural network is a key technique behind many artifical intelligent systems today. There were already a lot of research about neural network in late 20th century. However, this method only dominates other methods recently (around 2012) thanks to the availability of large datasets and the capability of powerful computation units (GPUs). This section presents briefly fully connected and convolutional neural networks which perform best in image classification. For a more rigorous treatment, please refer to Deep Learning book \cite{Goodfellow-et-al-2016} or chapter 5 of Pattern Recognition and Machine Learning book \cite{Bishop:2006:PRM:1162264}.
 \subsection{Fully-connected Neural Network}
 A fully connected neural network is a directed graph composed by a input layer, several hidden layers and an output layer. An example is shown in figure \ref{fig:fcNet}: The input data is presented by the input layer (e.g. vector of features of input) and is feeded forward through the network to the output layer which represents the probabilities of input's labels. Between each layers, there are learnable parameters: matrix \textbf{weight $W$} and vector \textbf{bias $b$}. Based on the dimensions of input features, number of classes, and hidden layers' sizes, we can easily determine the dimension of these parameters. 
@@ -120,8 +121,9 @@ where $W_i, b_i$ are parameters of the model (weights and biases), $n$ denotes n
 To train and validate a machine learning model, we usually split the dataset into 3 parts: training set ($\approx56\%$), validation set ($\approx14\%$) and test set ($\approx30\%$). We will use training dataset to train the model (in our case they are all the parameters $W_i$, $b_i$) and use the validation dataset to tune other hyperparameters: learning rates, dropout probability, hidden layer sizes, number of filters etc. Once we have done our best on the validation set, we run the model only once on the test dataset to obtain the test accuracy. This figure will be our model performance. 
 
 \section{Image Classification}
-\subsection{Overview}
-\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It's directly related to our object finding problem and we need to solve this first. However, in reality, we are likely to have input image that can contain several objects at once. The related problems are named \textbf{Object Detection} and \textbf{Segmentation}. Image Classification is needed to solve those problems and particularly, if the robot takes images at different view, there might exist the case where only one object is captured and the problem reduces to classify the image. This is not to say that the Image Classification is an easy task. By contrast, this is really hard problem given the following challenges (figure \ref{fig:ImClasschallenges}):
+\label{sec:imgClass}
+\subsection{Problem Description}
+\textbf{Image Classification} is the task of assigning an input image to one label from a fixed set of categories. It is directly related to the object finding problem. We will discuss further this point in section \ref{sec:objDetect}. Although the description is short, it is really challenging to achieve a high accuracy ($\geq$ 90\%) because of the following difficulties (figure \ref{fig:ImClasschallenges}):
 \begin{enumerate}
 	\item Viewpoint variation: the same object can be captured at different camera pose.
 	\item Illumination conditions: computers only see the pixel values and minor changes in illumination can result in totally different pixel values. 
@@ -135,15 +137,15 @@ To train and validate a machine learning model, we usually split the dataset int
 \begin{figure}[tb]
 \centering
 \includegraphics[width =0.9\hsize]{./figures/ImClasschallenges}
-\caption{Some challenges of Image Classification problem}
+\caption{Some challenges of Image Classification problem. Image source: \cite{cs231n}.}
 \label{fig:ImClasschallenges}
 \end{figure}
 \subsection{State-of-the-art Solution}
-Each year, there is a ImageNet Large Scale Visual Recognition Competition (ILSVRC) \cite{ILSVRC15} where research groups from around the world participate and submit their state of the art solution to multiple visual recognition problems. Image Classification is only one task in the challenge. Since 2012, the best solutions for image classification are always deep convolutional neural networks (CNN). Figure (\ref{fig:imagenetTop5Err}) illustrates this point. Below are some brief explaination for its success:
+Each year, there is an ImageNet Large Scale Visual Recognition Competition (ILSVRC) \cite{ILSVRC15} where research groups from around the world participate and submit their state of the art solution to multiple visual recognition problems. Image Classification is only one task in the challenge. There are 2 evaluations for this task: the top-1 and top-5 accuracies. While top-\tit{n} accuracy is the rate that your top \tit{n} predictions (i.e. the \tit{n} ones with highest probabilities) contain the ground truth label. Please note that, for this task, human beings achive only 5.1\% top-5 error rate, which equals to 94.9\% top-5 accuracy. Since 2012, the best solutions for image classification are always deep convolutional neural networks (CNNs). Figure (\ref{fig:imagenetTop5Err}) illustrates this point. Given the fundamental notions represented in section \ref{sec:neuralNet}, I restate below a brief explaination for the success of CNNs:
 \begin{itemize}
 	\item Deep neural networks accomodate non-linearity properties through activation layers. This makes the system more flexible and able to prioritise important features.
-	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters can extract from input image many types of features such as: edge, shape, colors etc. (for more details see \cite{DeepVis:2015})
-	\item Convolutional layers act as features builder, and given enough data, machines do this job better than human beings (5.1\% top 5 error rate).
+	\item Each convolutional layer is a stack of filters. After learning (i.e. at test time), those filters can extract from input image many types of features such as: edge, shape, colors etc. (for more details please refer to \cite{DeepVis:2015})
+	\item Convolutional layers act as features builder, and given enough data, machines do this job better than human beings (from figure \ref{fig:imagenetTop5Err}, we can see that ResNet with 152 layers reaches 3.6\% error rate).
 \end{itemize}
 In my experiment, I explored the following models:
 \begin{itemize}
@@ -156,7 +158,7 @@ Overall, Resnet50 performs the best with better accuracy and shorter computation
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.8\hsize]{./figures/imagenetTop5}
-\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2015. We can note a huge improvement from traditional approaches which use hand-crafted computer vision features (2010, 2011) to deep convolutional neural network (2012). VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is one of the winners in 2014. Its performance nearly equals to human beings (5.1\%). Resnet model \cite{DBLP:journals/corr/HeZRS15} is the winner in 2015. \tit{Figure copyright Kaiming He.}}
+\caption{Top 5 error rate in Imagenet Classification competition from 2010 to 2015. We can note a huge improvement from traditional approaches which use hand-crafted computer vision features (2010, 2011) to deep convolutional neural network (2012). VGG model \cite{DBLP:journals/corr/SimonyanZ14a} is one of the winners in 2014. Its performance nearly equals human beings (5.1\%). Resnet model \cite{DBLP:journals/corr/HeZRS15} is the winner in 2015. \tit{Figure copyright Kaiming He.}}
 \label{fig:imagenetTop5Err}
 \end{figure}
 
@@ -193,3 +195,135 @@ The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details
 	\caption{An example of transfer learning applied on VGG16 model. Note that the fully connected part was modified compared to the original VGG16. In addition there are only 12 categories to classify here.}
 	\label{fig:transferedVgg16}
 \end{figure}
+
+\section{Camera Model and Distance Estimation}
+\label{sec:camModel}
+The robot will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/pinhole}
+	\caption{Pinhole camera model: note that $(u, v)$ are pixel coordinates on the image, $(x,y,z)$ represent object's position in camera's frame. Image source: \cite{c433}.}
+	\label{fig:pinhole}
+\end{figure}
+
+In general, we have to take into account that the focal-lengths might differ and the origin of pixel coordinates is the top left corner of the image. Thus, the mathematical formula of the model is the following:
+\begin{align}
+	\label{form:pinhole}
+\begin{bmatrix}
+	u \\
+	v
+\end{bmatrix} = \begin{bmatrix}
+f_1 & 0 \\
+0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+x/z\\
+y/z
+\end{bmatrix} + \begin{bmatrix}
+c_1 \\ c_2
+\end{bmatrix}
+\end{align}
+
+Let's go further by considering a rectangle which is parallel to the image plane at distance $z$. The top-left and bottom-right corners of rectangular are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively (figure \ref{fig:rectForm}). We can compute the width and height of the rectangle from these coordinates: $w = x_2 - x_1$, $h = y_2 - y_1$. Beside, from formula \ref{form:pinhole}, we have:
+\begin{align}
+	\label{form:dist0}
+	\begin{bmatrix}
+		u_1 \\
+		v_1
+	\end{bmatrix} = \begin{bmatrix}
+	f_1 & 0 \\
+	0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+x_1/z\\
+y_1/z
+\end{bmatrix} + \begin{bmatrix}
+c_1 \\ c_2
+\end{bmatrix}
+\hspace{0.5cm} \text{and} \hspace{0.5cm}
+	\begin{bmatrix}
+		u_2 \\
+		v_2
+	\end{bmatrix} = \begin{bmatrix}
+	f_1 & 0 \\
+	0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+x_2/z\\
+y_2/z
+\end{bmatrix} + \begin{bmatrix}
+c_1 \\ c_2
+\end{bmatrix}
+\end{align}
+
+We then deduce:
+\begin{align}
+	\begin{bmatrix}
+		u_2 - u_1\\
+		v_2 - v_1
+	\end{bmatrix} &= \begin{bmatrix}
+	f_1 & 0 \\
+	0 & f_2 
+\end{bmatrix} \begin{bmatrix}
+(x_2 - x_1)/z\\
+(y_2 - y_1)/z
+\end{bmatrix} \nonumber\\
+\label{form:dist1}
+\rightarrow u_2 - u_1 &= f_1 \frac{x_2 - x_1}{z} \hspace{0.5cm} \text{and} \hspace{0.5cm} v_2 - v_1 = f_2 \frac{y_2 - y_1}{z} 
+\end{align}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.6\hsize]{./figures/rectForm}
+	\caption{A rectange at distance $z$ with top-left and bottom-right corners are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively. We deduce the width and height of this rectangle from the coordinates.}
+	\label{fig:rectForm}
+\end{figure}
+
+Note that the image of this rectangular is also a rectangular with width and height in pixel coordinates are: $w_{i} = u_2 - u_1$, $h_{i} = v_2 - v_1$. Combine this with formula \ref{form:dist1} we have:
+\begin{align}
+\label{form:dist2}
+z = f_1 * \frac{w}{w_i} \nonumber \\
+z = f_2 * \frac{h}{h_i}
+\end{align}
+In reality, these two function will not return a same result because of the measure errors as well as the simplicity of the camera model. Hence we could compute the average:
+\begin{align}
+z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i})
+\end{align}
+
+Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f_2$) and the image size of the rectangle ($w_i, h_i$), we can deduce the distance $z$. Now, given $z$ computed, we plug it into formula \ref{form:dist0} together with information of the image center ($c_1, c_2$), we can easily derive the position $(x_1, y_1, x_2, y_2)$ of the rectangle:
+\begin{align}
+	x_1 = \frac{(u_1 - c_1)z}{f_1} \hspace{0.6cm}
+	x_2 = \frac{(u_2 - c_1)z}{f_1} \hspace{0.6cm}
+	y_1 = \frac{(v_1 - c_2)z}{f_2} \hspace{0.6cm}
+	y_2 = \frac{(v_2 - c_2)z}{f_2} 
+\end{align}
+And then deduce the center of the bounding box:
+\begin{align}
+x_c = \frac{1}{2}\bigg(\frac{(u_1 - c_1)z}{f_1} + \frac{(u_2 - c_1)z}{f_1} \bigg) \hspace{0.5cm} y_c = \frac{1}{2}\bigg( \frac{(v_1 - c_2)z}{f_2} + \frac{(v_2 - c_2)z}{f_2} \bigg)
+\end{align}
+All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer. Those details will be mentioned in section \ref{sec:Cozmo}.
+This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
+\section{Object Detection}
+\label{sec:objDetect}
+\subsection{Problem Description}
+Image Classification presented in subsection \ref{sec:imgClass} is challenging, however, in reality, we are likely to deal with even more complex problem: input image contains multiple objects. Furthermore, we would like to know where each object appears in the image. This task is named \textbf{Object Detection} and formally, it can be described as follows:
+\begin{itemize}
+	\item \tbf{Input}: An image that may contain multiple objects, in terms of both category and quantity. 
+	\item \tbf{Output}: The original image with predicted objects. Each object is surrounded by a predicted bounding box.
+\end{itemize}
+By solving this problem, we can detect multiple objects and also locate them in the image. Knowing the bounding box around the object helps us to estimate the distance from the camera to the objects. This is discussed in section \ref{sec:camModel}.
+
+
+TODO: order of this section and the camera model section, link these two sections
+
+We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
+\subsection{Evaluation}
+
+
+\subsection{State-of-the-art Solutions}
+TODO: evaluation should be clear before solution
+general idea
+intro faster rcnn
+
+General idea will be
+
+
+
