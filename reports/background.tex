@@ -197,6 +197,7 @@ The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details
 \end{figure}
 
 \section{Camera Model and Distance Estimation}
+\label{sec:camModel}
 The robot will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
 
 \begin{figure}[tb]
@@ -287,25 +288,42 @@ In reality, these two function will not return a same result because of the meas
 z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i})
 \end{align}
 
-Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f_2$) and the image size of the rectangle ($w_i, h_i$), we can deduce the distance $z$. Now, given $z$ computed, we plug it into formula \ref{form:dist0} together with information of the image center ($c_1, c_2$), we can easily derive the position $(x_1, y_1)$ of the rectangle. All the camera's information mentioned above can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer.
-
+Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f_2$) and the image size of the rectangle ($w_i, h_i$), we can deduce the distance $z$. Now, given $z$ computed, we plug it into formula \ref{form:dist0} together with information of the image center ($c_1, c_2$), we can easily derive the position $(x_1, y_1, x_2, y_2)$ of the rectangle:
+\begin{align}
+	x_1 = \frac{(u_1 - c_1)z}{f_1} \hspace{0.6cm}
+	x_2 = \frac{(u_2 - c_1)z}{f_1} \hspace{0.6cm}
+	y_1 = \frac{(v_1 - c_2)z}{f_2} \hspace{0.6cm}
+	y_2 = \frac{(v_2 - c_2)z}{f_2} 
+\end{align}
+And then deduce the center of the bounding box:
+\begin{align}
+x_c = \frac{1}{2}\bigg(\frac{(u_1 - c_1)z}{f_1} + \frac{(u_2 - c_1)z}{f_1} \bigg) \hspace{0.5cm} y_c = \frac{1}{2}\bigg( \frac{(v_1 - c_2)z}{f_2} + \frac{(v_2 - c_2)z}{f_2} \bigg)
+\end{align}
+All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer. Those details will be mentioned in section \ref{sec:Cozmo}.
+This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
 \section{Object Detection}
 \label{sec:objDetect}
 \subsection{Problem Description}
-Image Classification presented in subsection \ref{sec:imgClass} is challenging, however, in reality, we are likely to deal with even more complex problem: input image contains multiple objects. The task is named \textbf{Object Detection} and formally, it can be described as follows:
+Image Classification presented in subsection \ref{sec:imgClass} is challenging, however, in reality, we are likely to deal with even more complex problem: input image contains multiple objects. Furthermore, we would like to know where each object appears in the image. This task is named \textbf{Object Detection} and formally, it can be described as follows:
 \begin{itemize}
 	\item \tbf{Input}: An image that may contain multiple objects, in terms of both category and quantity. 
 	\item \tbf{Output}: The original image with predicted objects. Each object is surrounded by a predicted bounding box.
 \end{itemize}
+By solving this problem, we can detect multiple objects and also locate them in the image. Knowing the bounding box around the object helps us to estimate the distance from the camera to the objects. This is discussed in section \ref{sec:camModel}.
 
 
-TODO: add some links to the object finding here or in the camera model section
-
-TODO: order of this section and the camera model section
+TODO: order of this section and the camera model section, link these two sections
 
 We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
-\subsection{State-of-the-art Solutions}
+\subsection{Evaluation}
 
+
+\subsection{State-of-the-art Solutions}
+TODO: evaluation should be clear before solution
+general idea
+intro faster rcnn
+
+General idea will be
 
 
 
