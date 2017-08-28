@@ -315,8 +315,17 @@ By solving this problem, we can detect multiple objects and also locate them in 
 TODO: order of this section and the camera model section, link these two sections
 
 We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
-\subsection{Evaluation}
 
+\subsection{Evaluation}
+The following notions (especially described in our context) are related to the evaluation of an object detection system:
+\begin{itemize}
+	\item True Positive $T_p$: the detector predicts that a considered label is positive (for example the predicted bounding box contains an object) and the ground-truth label is indeed positive.
+	\item False Positive $F_p$: the detector predicts that a considered label is positive while the ground-truth label is negative (i.e. predicted bounding box is just the background)
+	\item False Negative $F_n$: the detector predicts that a considered label is negative while the ground-truth shows that it is positive (for example there is indeed an object there but the system fails to detect)
+	\item Precision: $P = \frac{T_p}{T_p + F_p}$
+	\item Recall: $R = \frac{T_p}{T_p + F_n}$ 
+\end{itemize}
+Remind that there could be multiple objects located arbitrarily in each image. A detector
 
 \subsection{State-of-the-art Solutions}
 TODO: evaluation should be clear before solution
