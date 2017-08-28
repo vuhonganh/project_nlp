@@ -325,7 +325,7 @@ The following notions (especially described in our context) are related to the e
 	\item Precision: $P = \frac{T_p}{T_p + F_p}$
 	\item Recall: $R = \frac{T_p}{T_p + F_n}$ 
 \end{itemize}
-Remind that there could be multiple objects located arbitrarily in each image. A detector
+Remind that there could be multiple objects located arbitrarily in each image. A high precision ($F_p << T_p$) and low recall ($F_n >> T_p$) system will detect very few objects but most of its predictions are correct. On the other hand, a low precision ($F_p >> T_p$) and high recall ($F_n << T_p$) system will detect a lot of objects but most of its predictions are incorrect. Therefore, a good detector has to have both high precision and high recall.
 
 \subsection{State-of-the-art Solutions}
 TODO: evaluation should be clear before solution
