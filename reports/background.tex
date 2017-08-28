@@ -319,14 +319,19 @@ We will see in the following subsections that the state-of-the-art solutions for
 \subsection{Evaluation}
 The following notions (especially described in our context) are related to the evaluation of an object detection system:
 \begin{itemize}
+	\item Threshold: in binary classification (i.e. there are 2 classes: negative and positive class), threshold is a number $r \in [0.0, 1.0]$. Let's denote $p$ the predicted probability. When $p < r$ we assign the object to negative class and when $p \geq r$, we assign the object to the positive class.
 	\item True Positive $T_p$: the detector predicts that a considered label is positive (for example the predicted bounding box contains an object) and the ground-truth label is indeed positive.
 	\item False Positive $F_p$: the detector predicts that a considered label is positive while the ground-truth label is negative (i.e. predicted bounding box is just the background)
 	\item False Negative $F_n$: the detector predicts that a considered label is negative while the ground-truth shows that it is positive (for example there is indeed an object there but the system fails to detect)
 	\item Precision: $P = \frac{T_p}{T_p + F_p}$
 	\item Recall: $R = \frac{T_p}{T_p + F_n}$ 
+	\item Precision/Recall curve: by varying the threshold, we obtain different precision and recall values and then draw precision/recall curve from that.
 \end{itemize}
-Remind that there could be multiple objects located arbitrarily in each image. A high precision ($F_p << T_p$) and low recall ($F_n >> T_p$) system will detect very few objects but most of its predictions are correct. On the other hand, a low precision ($F_p >> T_p$) and high recall ($F_n << T_p$) system will detect a lot of objects but most of its predictions are incorrect. Therefore, a good detector has to have both high precision and high recall.
+Remind that there could be multiple objects located arbitrarily in each image. A high precision ($F_p << T_p$) and low recall ($F_n >> T_p$) system will detect very few objects but most of its predictions are correct. On the other hand, a low precision ($F_p >> T_p$) and high recall ($F_n << T_p$) system will detect a lot of objects but most of its predictions are incorrect. Therefore, a good detector has to have both high precision and high recall. To evaluate the system, we use a metric called \tbf{Average Precision} \cite{sklearnAPWeb}: $AP = \sum_k (R_k - R_{k-1})P_k$ where $P_k$ and $R_k$ are the precision and recall at the $k$-th threshold. This metric summarises the shape of the precision/recall curve (it is approximately the area under the precision/recall curve). A high area under the curve means both high precision and high recall. Since precision and recall are numbers in range $[0.0, 1.0]$, average precision (AP) will also be in this range and a higher AP is better.
 
+\tbf{Remark:} there are multiple versions of the Average Precision calculation. Because people from various domains (information retrieval, recommender system, computer vision etc.) adjust this metric to evaluate more appropriately their specific in-domain tasks. We will use the general version implemented in scikit-learn library \cite{sklearnAPWeb}. A version \cite{Everingham2010} that involves interpolation is used in PASCAL VOC challenges \cite{Everingham2010}. PASCAL VOC was a famous annual competition in image classification, object detection and image segmentation in period 2005-2012. Although the challenge has finished but the PASCAL VOC dataset is still in extensive use today.
+
+Given the Average Precision for each class, we can compute \tbf{mean Average Precision} across classes. This number will represent the system performance.
 \subsection{State-of-the-art Solutions}
 TODO: evaluation should be clear before solution
 general idea
