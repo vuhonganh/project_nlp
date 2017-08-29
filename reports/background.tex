@@ -333,11 +333,66 @@ Remind that there could be multiple objects located arbitrarily in each image. A
 
 Given the Average Precision for each class, we can compute \tbf{mean Average Precision} across classes. This number will represent the system performance.
 \subsection{State-of-the-art Solutions}
-TODO: evaluation should be clear before solution
-general idea
-intro faster rcnn
+Faster-RCNN \cite{DBLP:journals/corr/RenHG015} is currently one of the best solution for Object Detection problem. It is based entirely on convolutional neural network (\ref{fig:fasterRCNNfull}). We will also see related previous works (RCNN \cite{DBLP:journals/corr/GirshickDDM13} and Fast-RCNN \cite{DBLP:journals/corr/Girshick15}) to fully understand the method.
 
-General idea will be
+\subsubsection{RCNN}
+The general idea to solve Object Detection problem is as follows: for each image
+\begin{itemize}
+	\item Step 1: extract \tbf{\tit{regions of interest}} (\tbf{RoIs}) that have a high chance of containing objects. This step is also called \tbf{\tit{region proposals}}.
+	\item Step 2: refine those regions to exclude redundant regions.
+	\item Step 3: wrap these regions (to have appropriate dimensions) and put these regions into a classifier to get the object label.
+	\item Step 4: with predicted probabilities from step 3, redo step 2 to exclude more redundant regions. In addition, the bounding boxes are adjusted accordingly.
+\end{itemize}
 
+Figure \ref{fig:rcnn} illustrates R-CNN method (Regions with Convolutional Neural Networks features) \cite{DBLP:journals/corr/GirshickDDM13} which works similarly to the steps above. It uses an algorithm called Selective Search \cite{Uijlings:2013:SSO:2509349.2509382} to extract RoIs.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/rcnn}
+	\caption{Regional with Convolutional Neural Networks features: RoIs are extracted from Selective Search algorithm \cite{Uijlings:2013:SSO:2509349.2509382} and are wrapped to feed in a convolutional neural network. Image source: \cite{DBLP:journals/corr/GirshickDDM13}}
+	\label{fig:rcnn}
+\end{figure}
 
+\subsubsection{Fast-RCNN}
+The R-CNN method is really intuitive and straight-forward. However, it has a problem: it has to pass a numerous RoIs to the network and for overlapped regions, the computation is repeated many times. Therefore, a more robust version of R-CNN: Fast-RCNN \cite{DBLP:journals/corr/Girshick15} passes the whole image to the CNN \tbf{once}, and extract from that last layer the RoIs corresponding. These RoIs will pass through a RoI pooling layer to have an appropriate dimensions. Now these RoI feature vectors are input of the classifier and a bounding box regressor. This is illustrated in figure \ref{fig:fastRCNN}.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/fastRCNN}
+	\caption{\tbf{Fast-RCNN} (Fast Regional with Convolutional Neural Networks features): RoIs are projected accordingly from the last convolutional layer (i.e. convolutional feature map) and are pooled to feed in the classifier and bounding box regressor. Note that the RoIs on the original image are computed by Selective Search. Image source: \cite{DBLP:journals/corr/Girshick15}}
+	\label{fig:fastRCNN}
+\end{figure}
 
+\subsubsection{Faster-RCNN}
+Fast-RCNN is already good however there still exist one last bottleneck in the region proposal step. For a single image, it takes $\approx$ 2 seconds to run Selective Search while other computations can be done in $\leq$ 0.5 second (thanks to GPU for fast matrix calculation). Figure \ref{fig:rcnnCompair} illustrates this point. Hence, the \tbf{Faster-RCNN} method \cite{DBLP:journals/corr/RenHG015} integrates the region proposal step to the whole network by creating the \tbf{\tit{Regional Proposal Network}} \tbf{(RPN)} (figure \ref{fig:fasterRCNNfull}). RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Remind that each bounding box is described by 4 coordinates: $(x_{min}, y_{min}, x_{max}, y_{max})$ - positions of top-left and bottom-right corners.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/rcnnCompair}
+	\caption{Speed and performance of RCNN, FastRCNN, FasterRCNN models in test time. Image source: \cite{cs231n}}
+	\label{fig:rcnnCompair}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/fasterRCNNfull}
+	\caption{\tbf{Left}: Faster-RCNN integrates region proposal step to the whole network by creating Region Proposal Network (RPN). \tbf{Right}: RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Image source: \cite{DBLP:journals/corr/RenHG015}}
+	\label{fig:fasterRCNNfull}
+\end{figure}
+
+\subsubsection{Note on training}
+The Faster-RCNN model has finally 4 losses (figure \ref{fig:lossFasterRCNN}). Let's denote the losses in RPN \tit{the lower head}; the losses in the final layer \tit{the upper head} respectively. There exists multiple training schemes as described in \cite{DBLP:journals/corr/RenHG015}. We will adopt the approximate joint training scheme which is simpler to implement and still gives similar performance to other schemes. The approximate joint training scheme is described as follows: 
+For each gradient descent iteration
+\begin{itemize}
+	\item In forward pass: region proposals are treated as fixed, pre-computed proposals to train the upper head of the model.
+	\item In backward pass: gradients flow as usual from both upper and lower head. 
+	\item It is approximate because we do not calculate derivates of upper losses with respect to the region proposals' coordinates (since we are considering them fixed).
+\end{itemize}
+In addition, all the losses are defined mathematically in \cite{DBLP:journals/corr/RenHG015}. For more details, please refer to that paper.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/lossFasterRCNN}
+	\caption{A 4-losses training pipeline. Image source: \cite{cs231n}}
+	\label{fig:lossFasterRCNN}
+\end{figure}
+
+We chose to implement Faster-RCNN for our object detection system.
