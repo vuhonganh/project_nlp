@@ -65,7 +65,7 @@ In practice, fully-connected layers are combined with other blocks and they are 
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/convNet1}
-	\caption{A simple convolutional neural network: its neurons are transposed into 3D shape (width, height and depth) at each layer. The fully connected layer is placed at the end to classify input.}
+	\caption{A simple convolutional neural network: its neurons are transposed into 3D shape (width, height and depth) at each layer. The fully connected layer is placed at the end to classify input. Image source: \cite{deeplearningTut}}
 	\label{fig:convNet1}
 \end{figure}
 \subsection{Convolutional Neural Network}
@@ -88,7 +88,7 @@ The process is illustrated in figure \ref{fig:convNetsimple}. And a common metho
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.6\hsize]{./figures/maxpool}
-	\caption{Max-pooling to reduce tensor size and keep strongest features.}
+	\caption{Max-pooling to reduce tensor size and keep strongest features. Image source: \cite{cs231n}}
 	\label{fig:maxpool}
 \end{figure}
 
@@ -96,7 +96,7 @@ After several convolution layers, we flatten the tensor to put into a fully conn
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.8\hsize]{./figures/dropout}
-	\caption{Dropout helps to reduce overfitting and ensemble models. Image taken from original paper \cite{Srivastava:2014:DSW:2627435.2670313}.}
+	\caption{Dropout helps to reduce overfitting and ensemble models. Image source: \cite{Srivastava:2014:DSW:2627435.2670313}}
 	\label{fig:dropout}
 \end{figure}
 
@@ -196,14 +196,115 @@ The original VGG16 model is shown in figure \ref{fig:originalVgg16} with details
 	\label{fig:transferedVgg16}
 \end{figure}
 
+
+\section{Object Detection}
+\label{sec:objDetect}
+\subsection{Problem Description}
+Image Classification presented in subsection \ref{sec:imgClass} is challenging, however, in reality, we are likely to deal with even more complex problem: input image contains multiple objects. Furthermore, we would like to know where each object appears in the image. This task is named \textbf{Object Detection} and formally, it can be described as follows:
+\begin{itemize}
+	\item \tbf{Input}: An image that may contain multiple objects, in terms of both category and quantity. 
+	\item \tbf{Output}: The original image with predicted objects. Each object is surrounded by a predicted bounding box.
+\end{itemize}
+By solving this problem, we can detect multiple objects and also locate them in the image. Knowing the bounding box around the object helps us to estimate the distance from the camera to the objects. This is discussed in section \ref{sec:camModel}.
+
+We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
+
+\subsection{Evaluation}
+The following notions (especially described in our context) are related to the evaluation of an object detection system:
+\begin{itemize}
+	\item Threshold: in binary classification (i.e. there are 2 classes: negative and positive class), threshold is a number $r \in [0.0, 1.0]$. Let's denote $p$ the predicted probability. When $p < r$ we assign the object to negative class and when $p \geq r$, we assign the object to the positive class.
+	\item True Positive $T_p$: the detector predicts that a considered label is positive (for example the predicted bounding box contains an object) and the ground-truth label is indeed positive.
+	\item False Positive $F_p$: the detector predicts that a considered label is positive while the ground-truth label is negative (i.e. predicted bounding box is just the background)
+	\item False Negative $F_n$: the detector predicts that a considered label is negative while the ground-truth shows that it is positive (for example there is indeed an object there but the system fails to detect)
+	\item Precision: $P = \frac{T_p}{T_p + F_p}$
+	\item Recall: $R = \frac{T_p}{T_p + F_n}$ 
+	\item Precision/Recall curve: by varying the threshold, we obtain different precision and recall values and then draw precision/recall curve from that.
+\end{itemize}
+Remind that there could be multiple objects located arbitrarily in each image. A high precision ($F_p << T_p$) and low recall ($F_n >> T_p$) system will detect very few objects but most of its predictions are correct. On the other hand, a low precision ($F_p >> T_p$) and high recall ($F_n << T_p$) system will detect a lot of objects but most of its predictions are incorrect. Therefore, a good detector has to have both high precision and high recall. To evaluate the system, we use a metric called \tbf{Average Precision} \cite{sklearnAPWeb}: $AP = \sum_k (R_k - R_{k-1})P_k$ where $P_k$ and $R_k$ are the precision and recall at the $k$-th threshold. This metric summarises the shape of the precision/recall curve (it is approximately the area under the precision/recall curve). A high area under the curve means both high precision and high recall. Since precision and recall are numbers in range $[0.0, 1.0]$, average precision (AP) will also be in this range and a higher AP is better.
+
+\tbf{Remark:} there are multiple versions of the Average Precision calculation. Because people from various domains (information retrieval, recommender system, computer vision etc.) adjust this metric to evaluate more appropriately their specific in-domain tasks. We will use the general version implemented in scikit-learn library \cite{sklearnAPWeb}. A version \cite{Everingham2010} that involves interpolation is used in PASCAL VOC challenges \cite{Everingham2010}. PASCAL VOC was a famous annual competition in image classification, object detection and image segmentation in period 2005-2012. Although the challenge has finished but the PASCAL VOC dataset is still in extensive use today.
+
+Given the Average Precision for each class, we can compute \tbf{mean Average Precision} across classes. This number will represent the system performance.
+\subsection{State-of-the-art Solutions}
+Faster-RCNN \cite{DBLP:journals/corr/RenHG015} is currently one of the best solution for Object Detection problem. It is based entirely on convolutional neural network (\ref{fig:fasterRCNNfull}). We will also see related previous works (RCNN \cite{DBLP:journals/corr/GirshickDDM13} and Fast-RCNN \cite{DBLP:journals/corr/Girshick15}) to fully understand the method.
+
+\subsubsection{RCNN}
+The general idea to solve Object Detection problem is as follows: for each image
+\begin{itemize}
+	\item Step 1: Extract \tbf{\tit{regions of interest}} (\tbf{RoIs}) that have a high chance of containing objects. This step is also called \tbf{\tit{region proposals}}.
+	\item Step 2: Wrap these regions (to have appropriate dimensions) and put these regions into a classifier to get the object label and adjust the bounding boxes accordingly.
+	\item Step 3: With predicted probabilities from step 2, remove redundant regions. This method is called non-maximum suppression (see section 7.2 in \cite{Felzenszwalb:2010:ODD:1850486.1850574} for more details). Briefly, among the highly overlapped regions (greater than a overlap rate around $90\%$), we only keep the ones having highest probability.
+\end{itemize}
+
+Figure \ref{fig:rcnn} illustrates R-CNN method (Regions with Convolutional Neural Networks features) \cite{DBLP:journals/corr/GirshickDDM13} which works similarly to the steps above. It uses an algorithm called Selective Search \cite{Uijlings:2013:SSO:2509349.2509382} to extract RoIs.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/rcnn}
+	\caption{Regional with Convolutional Neural Networks features: RoIs are extracted from Selective Search algorithm \cite{Uijlings:2013:SSO:2509349.2509382} and are wrapped to feed in a convolutional neural network. Image source: \cite{DBLP:journals/corr/GirshickDDM13}}
+	\label{fig:rcnn}
+\end{figure}
+From figure \ref{fig:rcnn}, we can see the core engine of R-CNN is the convolutional neural network layers and the classifier on top of that. Hence, doing well in Image Classification is a need to perform well in Object Detection.
+
+\subsubsection{Fast-RCNN}
+The R-CNN method is really intuitive and straight-forward. However, it has a problem: it has to pass a numerous RoIs to the network and for overlapped regions, the computation is repeated many times. Therefore, a more robust version of R-CNN: Fast-RCNN \cite{DBLP:journals/corr/Girshick15} passes the whole image to the CNN \tbf{once}, and extract from that last layer the RoIs corresponding. These RoIs will pass through a RoI pooling layer to have an appropriate dimensions. Now these RoI feature vectors are input of the classifier and a bounding box regressor. This is illustrated in figure \ref{fig:fastRCNN}.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/fastRCNN}
+	\caption{\tbf{Fast-RCNN} (Fast Regional with Convolutional Neural Networks features): RoIs are projected accordingly from the last convolutional layer (i.e. convolutional feature map) and are pooled to feed in the classifier and bounding box regressor. Note that the RoIs on the original image are computed by Selective Search. Image source: \cite{DBLP:journals/corr/Girshick15}}
+	\label{fig:fastRCNN}
+\end{figure}
+
+\subsubsection{Faster-RCNN}
+Fast-RCNN is already good however there still exist one last bottleneck in the region proposal step. For a single image, it takes $\approx$ 2 seconds to run Selective Search while other computations can be done in $\leq$ 0.5 second (thanks to GPU for fast matrix calculation). Figure \ref{fig:rcnnCompair} illustrates this point. Hence, the \tbf{Faster-RCNN} method \cite{DBLP:journals/corr/RenHG015} integrates the region proposal step to the whole network by creating the \tbf{\tit{Regional Proposal Network}} \tbf{(RPN)} (figure \ref{fig:fasterRCNNfull}). RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Remind that each bounding box is described by 4 coordinates: $(x_{min}, y_{min}, x_{max}, y_{max})$ - positions of top-left and bottom-right corners.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/rcnnCompair}
+	\caption{Speed and performance of RCNN, FastRCNN, FasterRCNN models in test time. Testing data is the Pascal VOC 2007 test set. Image source: \cite{cs231n}}
+	\label{fig:rcnnCompair}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/fasterRCNNfull}
+	\caption{\tbf{Left}: Faster-RCNN integrates region proposal step to the whole network by creating Region Proposal Network (RPN). \tbf{Right}: RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Image source: \cite{DBLP:journals/corr/RenHG015}}
+	\label{fig:fasterRCNNfull}
+\end{figure}
+
+\subsubsection{Note on training}
+The Faster-RCNN model has finally 4 losses (figure \ref{fig:lossFasterRCNN}). Let's denote the losses in RPN \tit{the lower head}; the losses in the final layer \tit{the upper head} respectively. There exists multiple training schemes as described in \cite{DBLP:journals/corr/RenHG015}. We will adopt the approximate joint training scheme which is simpler to implement and still gives similar performance to other schemes. The approximate joint training scheme is described as follows: 
+For each gradient descent iteration
+\begin{itemize}
+	\item In forward pass: region proposals are treated as fixed, pre-computed proposals to train the upper head of the model.
+	\item In backward pass: gradients flow as usual from both upper and lower head. 
+	\item It is approximate because we do not calculate derivates of upper losses with respect to the region proposals' coordinates (since we are considering them fixed).
+\end{itemize}
+In addition, all the losses are defined mathematically in \cite{DBLP:journals/corr/RenHG015}. For more details, please refer to that paper.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/lossFasterRCNN}
+	\caption{A 4-losses training pipeline. Image source: \cite{cs231n}}
+	\label{fig:lossFasterRCNN}
+\end{figure}
+
+Based on the speed and robustness of Faster-RCNN method (figure \ref{fig:rcnnCompair}), I chose Faster-RCNN method to build our object detection system.
+
+
 \section{Camera Model and Distance Estimation}
 \label{sec:camModel}
-The robot will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
+We can estimate the distance from camera to objects if these three requirements are met: 
+\begin{itemize}
+	\item We have the ability to detect objects and neatly locate them in the image by surrounding a bounding box. By doing that we know the size (in pixels) of the area that the objects occupy.
+	\item The camera's intrinsic parameters (focal lengths, image center, etc.) are known.
+	\item The (estimated) size of the objects (in centimetres for example) are known.
+\end{itemize}
+Thourghout this section, we will see how the statement above applies. Please note that the robot's specification will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
 
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/pinhole}
-	\caption{Pinhole camera model: note that $(u, v)$ are pixel coordinates on the image, $(x,y,z)$ represent object's position in camera's frame. Image source: \cite{c433}.}
+	\caption{Pinhole camera model: note that $(u, v)$ are pixel coordinates on the image, $(x,y,z)$ represent object's position in camera's frame. Image source: \cite{c433}}
 	\label{fig:pinhole}
 \end{figure}
 
@@ -301,98 +402,3 @@ x_c = \frac{1}{2}\bigg(\frac{(u_1 - c_1)z}{f_1} + \frac{(u_2 - c_1)z}{f_1} \bigg
 \end{align}
 All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer. Those details will be mentioned in section \ref{sec:Cozmo}.
 This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
-\section{Object Detection}
-\label{sec:objDetect}
-\subsection{Problem Description}
-Image Classification presented in subsection \ref{sec:imgClass} is challenging, however, in reality, we are likely to deal with even more complex problem: input image contains multiple objects. Furthermore, we would like to know where each object appears in the image. This task is named \textbf{Object Detection} and formally, it can be described as follows:
-\begin{itemize}
-	\item \tbf{Input}: An image that may contain multiple objects, in terms of both category and quantity. 
-	\item \tbf{Output}: The original image with predicted objects. Each object is surrounded by a predicted bounding box.
-\end{itemize}
-By solving this problem, we can detect multiple objects and also locate them in the image. Knowing the bounding box around the object helps us to estimate the distance from the camera to the objects. This is discussed in section \ref{sec:camModel}.
-
-
-TODO: order of this section and the camera model section, link these two sections
-
-We will see in the following subsections that the state-of-the-art solutions for Object Detection also rely on a robust image classifier. Hence doing well on Image Classification is a need to build a good object detection system.
-
-\subsection{Evaluation}
-The following notions (especially described in our context) are related to the evaluation of an object detection system:
-\begin{itemize}
-	\item Threshold: in binary classification (i.e. there are 2 classes: negative and positive class), threshold is a number $r \in [0.0, 1.0]$. Let's denote $p$ the predicted probability. When $p < r$ we assign the object to negative class and when $p \geq r$, we assign the object to the positive class.
-	\item True Positive $T_p$: the detector predicts that a considered label is positive (for example the predicted bounding box contains an object) and the ground-truth label is indeed positive.
-	\item False Positive $F_p$: the detector predicts that a considered label is positive while the ground-truth label is negative (i.e. predicted bounding box is just the background)
-	\item False Negative $F_n$: the detector predicts that a considered label is negative while the ground-truth shows that it is positive (for example there is indeed an object there but the system fails to detect)
-	\item Precision: $P = \frac{T_p}{T_p + F_p}$
-	\item Recall: $R = \frac{T_p}{T_p + F_n}$ 
-	\item Precision/Recall curve: by varying the threshold, we obtain different precision and recall values and then draw precision/recall curve from that.
-\end{itemize}
-Remind that there could be multiple objects located arbitrarily in each image. A high precision ($F_p << T_p$) and low recall ($F_n >> T_p$) system will detect very few objects but most of its predictions are correct. On the other hand, a low precision ($F_p >> T_p$) and high recall ($F_n << T_p$) system will detect a lot of objects but most of its predictions are incorrect. Therefore, a good detector has to have both high precision and high recall. To evaluate the system, we use a metric called \tbf{Average Precision} \cite{sklearnAPWeb}: $AP = \sum_k (R_k - R_{k-1})P_k$ where $P_k$ and $R_k$ are the precision and recall at the $k$-th threshold. This metric summarises the shape of the precision/recall curve (it is approximately the area under the precision/recall curve). A high area under the curve means both high precision and high recall. Since precision and recall are numbers in range $[0.0, 1.0]$, average precision (AP) will also be in this range and a higher AP is better.
-
-\tbf{Remark:} there are multiple versions of the Average Precision calculation. Because people from various domains (information retrieval, recommender system, computer vision etc.) adjust this metric to evaluate more appropriately their specific in-domain tasks. We will use the general version implemented in scikit-learn library \cite{sklearnAPWeb}. A version \cite{Everingham2010} that involves interpolation is used in PASCAL VOC challenges \cite{Everingham2010}. PASCAL VOC was a famous annual competition in image classification, object detection and image segmentation in period 2005-2012. Although the challenge has finished but the PASCAL VOC dataset is still in extensive use today.
-
-Given the Average Precision for each class, we can compute \tbf{mean Average Precision} across classes. This number will represent the system performance.
-\subsection{State-of-the-art Solutions}
-Faster-RCNN \cite{DBLP:journals/corr/RenHG015} is currently one of the best solution for Object Detection problem. It is based entirely on convolutional neural network (\ref{fig:fasterRCNNfull}). We will also see related previous works (RCNN \cite{DBLP:journals/corr/GirshickDDM13} and Fast-RCNN \cite{DBLP:journals/corr/Girshick15}) to fully understand the method.
-
-\subsubsection{RCNN}
-The general idea to solve Object Detection problem is as follows: for each image
-\begin{itemize}
-	\item Step 1: extract \tbf{\tit{regions of interest}} (\tbf{RoIs}) that have a high chance of containing objects. This step is also called \tbf{\tit{region proposals}}.
-	\item Step 2: refine those regions to exclude redundant regions.
-	\item Step 3: wrap these regions (to have appropriate dimensions) and put these regions into a classifier to get the object label.
-	\item Step 4: with predicted probabilities from step 3, redo step 2 to exclude more redundant regions. In addition, the bounding boxes are adjusted accordingly.
-\end{itemize}
-
-Figure \ref{fig:rcnn} illustrates R-CNN method (Regions with Convolutional Neural Networks features) \cite{DBLP:journals/corr/GirshickDDM13} which works similarly to the steps above. It uses an algorithm called Selective Search \cite{Uijlings:2013:SSO:2509349.2509382} to extract RoIs.
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=1.0\hsize]{./figures/rcnn}
-	\caption{Regional with Convolutional Neural Networks features: RoIs are extracted from Selective Search algorithm \cite{Uijlings:2013:SSO:2509349.2509382} and are wrapped to feed in a convolutional neural network. Image source: \cite{DBLP:journals/corr/GirshickDDM13}}
-	\label{fig:rcnn}
-\end{figure}
-
-\subsubsection{Fast-RCNN}
-The R-CNN method is really intuitive and straight-forward. However, it has a problem: it has to pass a numerous RoIs to the network and for overlapped regions, the computation is repeated many times. Therefore, a more robust version of R-CNN: Fast-RCNN \cite{DBLP:journals/corr/Girshick15} passes the whole image to the CNN \tbf{once}, and extract from that last layer the RoIs corresponding. These RoIs will pass through a RoI pooling layer to have an appropriate dimensions. Now these RoI feature vectors are input of the classifier and a bounding box regressor. This is illustrated in figure \ref{fig:fastRCNN}.
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=0.9\hsize]{./figures/fastRCNN}
-	\caption{\tbf{Fast-RCNN} (Fast Regional with Convolutional Neural Networks features): RoIs are projected accordingly from the last convolutional layer (i.e. convolutional feature map) and are pooled to feed in the classifier and bounding box regressor. Note that the RoIs on the original image are computed by Selective Search. Image source: \cite{DBLP:journals/corr/Girshick15}}
-	\label{fig:fastRCNN}
-\end{figure}
-
-\subsubsection{Faster-RCNN}
-Fast-RCNN is already good however there still exist one last bottleneck in the region proposal step. For a single image, it takes $\approx$ 2 seconds to run Selective Search while other computations can be done in $\leq$ 0.5 second (thanks to GPU for fast matrix calculation). Figure \ref{fig:rcnnCompair} illustrates this point. Hence, the \tbf{Faster-RCNN} method \cite{DBLP:journals/corr/RenHG015} integrates the region proposal step to the whole network by creating the \tbf{\tit{Regional Proposal Network}} \tbf{(RPN)} (figure \ref{fig:fasterRCNNfull}). RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Remind that each bounding box is described by 4 coordinates: $(x_{min}, y_{min}, x_{max}, y_{max})$ - positions of top-left and bottom-right corners.
-
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=0.8\hsize]{./figures/rcnnCompair}
-	\caption{Speed and performance of RCNN, FastRCNN, FasterRCNN models in test time. Testing data is the Pascal VOC 2007 test set. Image source: \cite{cs231n}}
-	\label{fig:rcnnCompair}
-\end{figure}
-
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=1.0\hsize]{./figures/fasterRCNNfull}
-	\caption{\tbf{Left}: Faster-RCNN integrates region proposal step to the whole network by creating Region Proposal Network (RPN). \tbf{Right}: RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Image source: \cite{DBLP:journals/corr/RenHG015}}
-	\label{fig:fasterRCNNfull}
-\end{figure}
-
-\subsubsection{Note on training}
-The Faster-RCNN model has finally 4 losses (figure \ref{fig:lossFasterRCNN}). Let's denote the losses in RPN \tit{the lower head}; the losses in the final layer \tit{the upper head} respectively. There exists multiple training schemes as described in \cite{DBLP:journals/corr/RenHG015}. We will adopt the approximate joint training scheme which is simpler to implement and still gives similar performance to other schemes. The approximate joint training scheme is described as follows: 
-For each gradient descent iteration
-\begin{itemize}
-	\item In forward pass: region proposals are treated as fixed, pre-computed proposals to train the upper head of the model.
-	\item In backward pass: gradients flow as usual from both upper and lower head. 
-	\item It is approximate because we do not calculate derivates of upper losses with respect to the region proposals' coordinates (since we are considering them fixed).
-\end{itemize}
-In addition, all the losses are defined mathematically in \cite{DBLP:journals/corr/RenHG015}. For more details, please refer to that paper.
-
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=0.8\hsize]{./figures/lossFasterRCNN}
-	\caption{A 4-losses training pipeline. Image source: \cite{cs231n}}
-	\label{fig:lossFasterRCNN}
-\end{figure}
-
-We chose to implement Faster-RCNN for our object detection system.
