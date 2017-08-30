@@ -30,10 +30,9 @@ The overview of the system is described in figure \ref{fig:UIdesign}. The left r
 \section{Cozmo Robot}
 \label{sec:Cozmo}
 
-TODO: add camera info
+TODO: add image source + images show bad quality + distance estimation with cube
 
-
-Cozmo (figure \ref{fig:cozmo}) is a great robot produced by Anki \cite{AnkiOfficial:2017}. Beside concise movement ability, it has already a QVGA camera (resolution $320 \times 240$) built-in with frame rate 15fps. Eventhough the camera is not good, it still gives us acceptable images and helps us avoid building a robot from scratch, which can be time consuming. 
+Cozmo (figure \ref{fig:cozmo}) is a great robot from Anki \cite{AnkiOfficial:2017}. Beside concise movement ability, my Cozmo also has a built-in QVGA camera with frame rate 15fps \cite{cozmoTech}. Eventhough the camera is not good, it still gives us acceptable images and helps us avoid building a robot from scratch, which can be time consuming.
 
 \begin{figure}[!htb]
 	\centering
@@ -42,7 +41,19 @@ Cozmo (figure \ref{fig:cozmo}) is a great robot produced by Anki \cite{AnkiOffic
 	\label{fig:cozmo}
 \end{figure}
 
+\subsection{Camera Sensor}
+ As stated above, my Cozmo has a QVGA (resolution $320 \times 240$) camera built-in with frame rate 15fps. \tit{Please note that Anki seems to understand this limitation and decide to upgrade the camera sensor to a VGA (resolution $640 \times 480$) camera with 30 fps in the recent Cozmo robots.}. Here are a few details about the camera sensors:
+ \begin{itemize}
+ 	\item focal length in x axis: 292.84 (pixels)
+ 	\item focal length in y axis: 292.84 (pixels)
+ 	\item field of view in x axis: $57^{\circ}$
+ 	\item field of view in y axis: $44^{\circ}$
+ 	\item center of image in x axis: 161.09 (pixels)
+ 	\item center of image in y axis: 128.56 (pixels)
+ \end{itemize}
+Figure \ref{} shows images captured by Cozmo. Beside the low resolution, we can also see light intensity flickering problem with photos taken under fluorescent light sources.
 
+ \subsection{Communication}
 The connection between Cozmo and our system is illustrated in figure \ref{fig:CozmoConnect}. Cozmo will connects to a mobile device (that has Cozmo application installed) via its own wifi. In my setup, the mobile device is an IPad. Then it is connected to our system (the computer) via a USB cable. Linux machines now can access iOS device (such as IPhone, IPad) through \tit{libimobiledevice} \cite{libimobiledevice}. The following steps summarize the process:
 \begin{enumerate}
 	\item Connect the mobile device to the system via USB.
