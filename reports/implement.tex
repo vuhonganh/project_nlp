@@ -30,14 +30,14 @@ The overview of the system is described in figure \ref{fig:UIdesign}. The left r
 \section{Cozmo Robot}
 \label{sec:Cozmo}
 
-TODO: add image source + images show bad quality + distance estimation with cube
+TODO: images show bad quality + distance estimation with cube: consider put it here to in experimental result
 
 Cozmo (figure \ref{fig:cozmo}) is a great robot from Anki \cite{AnkiOfficial:2017}. Beside concise movement ability, my Cozmo also has a built-in QVGA camera with frame rate 15fps \cite{cozmoTech}. Eventhough the camera is not good, it still gives us acceptable images and helps us avoid building a robot from scratch, which can be time consuming.
 
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[width=0.8\hsize]{./figures/cozmo}
-	\caption{Cozmo robot that has concise movement, built-in QVGA camera as well as other features (LED screen, etc.)}
+	\caption{Cozmo robot that has concise movement, built-in QVGA camera as well as other features (LED screen, etc.). Image source: theverge.com}
 	\label{fig:cozmo}
 \end{figure}
 
@@ -77,7 +77,6 @@ Given the text command, we have a Reader instance that will do the preprocessing
 	\caption{Commands are parsed via a Reader object. Then they are handled accordingly via their corresponding Action objects.}
 	\label{fig:readerAction}
 \end{figure}
-
 
 \section{Threading}
 There are a few scenarios where we need to use threading in order to avoid freezing the user interface:
