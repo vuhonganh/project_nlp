@@ -398,7 +398,8 @@ Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f
 \end{align}
 And then deduce the center of the bounding box:
 \begin{align}
-x_c = \frac{1}{2}\bigg(\frac{(u_1 - c_1)z}{f_1} + \frac{(u_2 - c_1)z}{f_1} \bigg) \hspace{0.5cm} y_c = \frac{1}{2}\bigg( \frac{(v_1 - c_2)z}{f_2} + \frac{(v_2 - c_2)z}{f_2} \bigg)
+x_c &= \frac{1}{2}\bigg(\frac{(u_1 - c_1)z}{f_1} + \frac{(u_2 - c_1)z}{f_1} \bigg) \hspace{0.5cm} y_c &= \frac{1}{2}\bigg( \frac{(v_1 - c_2)z}{f_2} + \frac{(v_2 - c_2)z}{f_2} \bigg) \nonumber \\
+x_c &= \frac{1}{2}\frac{(u_1 + u_2 - 2 * c_1)z}{f_1} \hspace{0.5cm} y_c &= \frac{1}{2}\frac{(v_1 + v_2 - 2*c_2)z}{f_2}
 \end{align}
 All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer. Those details will be mentioned in section \ref{sec:Cozmo}.
 This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
