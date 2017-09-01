@@ -225,6 +225,9 @@ Remind that there could be multiple objects located arbitrarily in each image. A
 \tbf{Remark:} there are multiple versions of the Average Precision calculation. Because people from various domains (information retrieval, recommender system, computer vision etc.) adjust this metric to evaluate more appropriately their specific in-domain tasks. We will use the general version implemented in scikit-learn library \cite{sklearnAPWeb}. A version \cite{Everingham2010} that involves interpolation is used in PASCAL VOC challenges \cite{Everingham2010}. PASCAL VOC was a famous annual competition in image classification, object detection and image segmentation in period 2005-2012. Although the challenge has finished but the PASCAL VOC dataset is still in extensive use today.
 
 Given the Average Precision for each class, we can compute \tbf{mean Average Precision} across classes. This number will represent the system performance.
+
+TODO: add bounding box evaluation requirement
+
 \subsection{State-of-the-art Solutions}
 Faster-RCNN \cite{DBLP:journals/corr/RenHG015} is currently one of the best solution for Object Detection problem. It is based entirely on convolutional neural network (\ref{fig:fasterRCNNfull}). We will also see related previous works (RCNN \cite{DBLP:journals/corr/GirshickDDM13} and Fast-RCNN \cite{DBLP:journals/corr/Girshick15}) to fully understand the method.
 
