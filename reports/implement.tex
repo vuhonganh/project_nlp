@@ -30,8 +30,6 @@ The overview of the system is described in figure \ref{fig:UIdesign}. The left r
 \section{The Cozmo Robot}
 \label{sec:Cozmo}
 
-TODO: images show bad quality + distance estimation with cube: consider put it here to in experimental result
-
 Cozmo (figure \ref{fig:cozmo}) is a great robot from Anki \cite{AnkiOfficial:2017}. Beside concise movement ability, my Cozmo also has a built-in QVGA camera with frame rate 15fps \cite{cozmoTech}. Eventhough the camera is not good, it still gives us acceptable images and helps us avoid building a robot from scratch, which can be time consuming.
 
 \begin{figure}[!htb]
@@ -51,7 +49,15 @@ Cozmo (figure \ref{fig:cozmo}) is a great robot from Anki \cite{AnkiOfficial:201
  	\item center of image in x axis: 161.09 (pixels)
  	\item center of image in y axis: 128.56 (pixels)
  \end{itemize}
-Figure \ref{} shows images captured by Cozmo. Beside the low resolution, we can also see light intensity flickering problem with photos taken under fluorescent light sources.
+Figure \ref{fig:cozmoRealImg} shows images captured by Cozmo. Beside the low resolution, we can also see light intensity flickering problem with photos taken under fluorescent light sources.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/cozmoRealImg}
+	\caption{Images taken from Cozmo's camera. \tbf{Left:} Photo of an apple is shown. We can see that the image is noisy and its resolution is low. \tbf{Right:} Photo of a book is shown. We can see the light intensity flickering problem for images taken under fluorescent light sources (the horizontal stripes in the image).}
+	\label{fig:cozmoRealImg}
+\end{figure}
+
 
  \subsection{Communication}
 The connection between Cozmo and our system is illustrated in figure \ref{fig:CozmoConnect}. Cozmo will connects to a mobile device (that has Cozmo application installed) via its own wifi. In my setup, the mobile device is an IPad. Then it is connected to our system (the computer) via a USB cable. Linux machines now can access iOS device (such as IPhone, IPad) through \tit{libimobiledevice} \cite{libimobiledevice}. The following steps summarize the process:
@@ -94,3 +100,56 @@ There are a few scenarios where we need to use threading in order to avoid freez
 \end{figure}
 
 Figure \ref{fig:threads} illustrates the threading structure of the program. Initially, the main program will run these threads in background. Then, whenever user's command needs to use them, these threads are waken up to do their jobs. Note that record thread always works together with speech recognition thread. The idea of seperating them in 2 threads is for further development when we could probably try other speech recognizers.
+
+\section{Dataset}
+TODO: explain how many dataset is used, how it is collected and structured
+
+\subsection{Dataset Characteristic}
+Images from ImageNet are taken from many sources and some of them can be really confusing. For example, image in category \tit{Apple} can contain also other fruits (figure \ref{fig:imhard1}). Some of them are just simply difficult because the label is not the main content of the picture (figure \ref{fig:imhard2}). However, this diversity makes the system more flexible and robust at test time because in practice, we can have objects mixed together or not in the center of the image. Therefore, I chose to keep this characteristic.
+
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}[t]{0.45\linewidth}
+		\includegraphics[scale=0.37]{./figures/imhard1}
+		\caption{This image belongs to class \tit{Apple} but contains also a \tit{Pear}.}
+		\label{fig:imhard1}
+	\end{minipage}
+	\quad
+	\begin{minipage}[t]{0.45\linewidth}
+		\includegraphics[scale=0.35]{./figures/imhard2}
+		\caption{This image belongs to class \tit{Orange} but there is only a small orange on the left side.}
+		\label{fig:imhard2}
+	\end{minipage}
+\end{figure}
+
+\section{Data Preprocessing and Augmentation}
+Commonly, there are two principal types of preprocessing data: \tit{mean subtraction} and \tit{normalization}. Preprocessing data normally helps training faster and empowers activation functions such as ReLU ($f(x) = max(x, 0)$).
+
+\subsection{Mean Subtraction}
+Mean subtraction make data zero-centered (middle plot in figure \ref{fig:prepro1}). First, we calculate the mean image of all the \tbf{training images}, across the three color channels. Then, we subtract all the images (in training, validation and test set) by this mean. 
+\subsection{Normalization}
+Normalize data is to scale data to a fixed range $[-r, +r]$ where range $r$ is normally $1$. To do so, we calculate the standard deviation image of all the \tbf{training images}, across the three color channels. Then we divide all the images (in training, validation and test set) by this standard deviation. This is illustrated in right plot of figure \ref{fig:prepro1}. Note that the pixel value is already in range $[0, 255]$ hence normalization is not required for image.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/prepro1}
+	\caption{Left: original 2D input data. Middle: subtracted mean data. Right: subtracted mean and normalized data. \tit{Image courtesy of Andrej Kaparthy \cite{cs231n}.}}
+	\label{fig:prepro1}
+\end{figure}
+
+\subsection{Image Augmentation}
+There are many ways to augment our dataset: flipping, rotating, cropping, distorting images, adding noise, etc. Becase of the limited computation resource, I only used the following augmentation techniques (figure \ref{fig:augment1}):
+\begin{itemize}
+	\item add a bit of noise on original image (sub-image 4)
+	\item flip image vertically (sub-image 2) and add a bit of noise (sub-image 5)
+	\item flip image vertically (sub-image 3) and add a bit of noise (sub-image 6)
+\end{itemize}
+\begin{figure}[bh!]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/augment1}
+	\caption{Augmented images: (1) original, (2) vertical flip, (3) horizontal flip, (4) noise, (5) verticalf lip plus noise, (6) horizontal flip plus noise.}
+	\label{fig:augment1}
+\end{figure}
+
+
+TODO: add details about github, commits, fork, etc.

@@ -1,6 +1,9 @@
 \label{chap:ExpRes}
 Based on sections \ref{sec:neuralNet} and \ref{sec:imgClass}, in this chapter, we will discuss further about the experimental results, particularly of the image classification system.
 
+
+TODO: distance estimation with cube
+
 \section{Problem Review}
 Remind that the problem we are referring in this section is the image classification of images belonging to 12 categories. We have the following details:
 \begin{enumerate}
@@ -17,53 +20,6 @@ Remind that the problem we are referring in this section is the image classifica
 	\end{itemize} 
 	\item Note that after convolutional block, we flatten the feature tensor to become a 1D feature vector. In addition, our number of classes is fixed to 12. Hence we only denote the hidden layers in the fully-connected part. For example, resnet\_512 is the model uses convolutional blocks of Resnet50 and has fully-connected part as: flatten - 512 - 12. 
 \end{enumerate}
-
-\section{Dataset Characteristic}
-Images from ImageNet are taken from many sources and some of them can be really confusing. For example, image in category \tit{Apple} can contain also other fruits (figure \ref{fig:imhard1}). Some of them are just simply difficult because the label is not the main content of the picture (figure \ref{fig:imhard2}). However, this diversity makes the system more flexible and robust at test time because in practice, we can have objects mixed together or not in the center of the image. Therefore, I chose to keep this characteristic.
-
-\begin{figure}[!ht]
-	\centering
-	\begin{minipage}[t]{0.45\linewidth}
-		\includegraphics[scale=0.37]{./figures/imhard1}
-		\caption{This image belongs to class \tit{Apple} but contains also a \tit{Pear}.}
-		\label{fig:imhard1}
-	\end{minipage}
-	\quad
-	\begin{minipage}[t]{0.45\linewidth}
-		\includegraphics[scale=0.35]{./figures/imhard2}
-		\caption{This image belongs to class \tit{Orange} but there is only a small orange on the left side.}
-		\label{fig:imhard2}
-	\end{minipage}
-\end{figure}
-
-\section{Data Preprocessing}
-Commonly, there are two principal types of preprocessing data: \tit{mean subtraction} and \tit{normalization}. Preprocessing data normally helps training faster and empowers activation functions such as ReLU ($f(x) = max(x, 0)$).
-
-\subsection{Mean Subtraction}
-Mean subtraction make data zero-centered (middle plot in figure \ref{fig:prepro1}). First, we calculate the mean image of all the \tbf{training images}, across the three color channels. Then, we subtract all the images (in training, validation and test set) by this mean. 
-\subsection{Normalization}
-Normalize data is to scale data to a fixed range $[-r, +r]$ where range $r$ is normally $1$. To do so, we calculate the standard deviation image of all the \tbf{training images}, across the three color channels. Then we divide all the images (in training, validation and test set) by this standard deviation. This is illustrated in right plot of figure \ref{fig:prepro1}. Note that the pixel value is already in range $[0, 255]$ hence normalization is not required for image.
-
-\begin{figure}[tb]
-	\centering
-	\includegraphics[width=0.9\hsize]{./figures/prepro1}
-	\caption{Left: original 2D input data. Middle: subtracted mean data. Right: subtracted mean and normalized data. \tit{Image courtesy of Andrej Kaparthy \cite{cs231n}.}}
-	\label{fig:prepro1}
-\end{figure}
-
-\section{Image Augmentation}
-There are many ways to augment our dataset: flipping, rotating, cropping, distorting images, adding noise, etc. Becase of the limited computation resource, I only used the following augmentation techniques (figure \ref{fig:augment1}):
-\begin{itemize}
-	\item add a bit of noise on original image (sub-image 4)
-	\item flip image vertically (sub-image 2) and add a bit of noise (sub-image 5)
-	\item flip image vertically (sub-image 3) and add a bit of noise (sub-image 6)
-\end{itemize}
-\begin{figure}[bh!]
-	\centering
-	\includegraphics[width=0.8\hsize]{./figures/augment1}
-	\caption{Augmented images: (1) original, (2) vertical flip, (3) horizontal flip, (4) noise, (5) verticalf lip plus noise, (6) horizontal flip plus noise.}
-	\label{fig:augment1}
-\end{figure}
 
 
 \section{Transfer Learning Result}
