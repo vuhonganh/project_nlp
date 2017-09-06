@@ -22,6 +22,7 @@ def estim_center(u1, v1, u2, v2, w, h, f1=292.84, f2=292.84, c1=161.09, c2=128.5
 
 
 w = h = 4.4  # in cm
+l = []
 with open('note.txt', 'r') as f:
 	for line in f:
 		line = line.strip('\n')
@@ -29,4 +30,22 @@ with open('note.txt', 'r') as f:
 		u1 = int(u1); v1 = int(v1); u2 = int(u2); v2 = int(v2)
 		xc, yc, zc = estim_center(u1, v1, u2, v2, w, h)		
 		dist = np.sqrt(xc * xc + yc * yc + zc * zc)
+		l.append(dist)
 		print(img_name, xc, yc, zc, dist)
+
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+
+fig, ax = plt.subplots(1,1)
+
+ax.set_ylabel('distance (cm)')
+ax.set_xlabel('measurement')
+
+ax.plot(range(1,6),[10,20,30,40,50],marker='o',color='b',linestyle='-', label='ground truth')
+ax.plot(range(1,6),l,marker='o',color='r',linestyle='-', label='estimated')
+
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+ax.legend()
+ax.set_title('distance estimation')
+plt.show()
