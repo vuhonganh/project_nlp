@@ -1,0 +1,18 @@
+For our camera sensor, we have identical focal length $f_1 = f_2$ (see section \ref{sec:}). Let's denote $f = f_1 = f_2$ the focal length. Take total derivative of formula \ref{form:} we have:
+\begin{align*}
+z = f \frac{h_i}{h} \\
+\ln z = \ln f + \ln h_i - \ln h \\
+\frac{d z}{z} = \frac{d f}{f} + \frac{d h_i}{h_i} - \frac{d h}{h} \\
+\end{align*}
+Let's denote $\Delta x$ the error estimation of parameter $x$. We have the relative error estimation:
+\begin{align}
+\frac{\Delta z}{z} =  \frac{\Delta f}{f} + \frac{\Delta h_i}{h_i} + \frac{\Delta h}{h}
+\label{form:errEst}
+\end{align}
+We can see from formula \ref{form:errEst} that the relative error is big if: 
+\begin{itemize}
+	\item object is small ($h$ is small)
+	\item object is far from the camera ($h_i$ is small)
+	\item bounding box is not accurate ($\Delta h_i$ is big)
+	\item camera has low resolution (upper bound of $h_i$ is small)
+\end{itemize}
