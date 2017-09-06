@@ -319,13 +319,17 @@ Based on the speed and robustness of Faster-RCNN method (figure \ref{fig:rcnnCom
 
 \section{Camera Model and Distance Estimation}
 \label{sec:camModel}
+\subsection{Overview}
 We can estimate the distance from camera to objects if these three requirements are met: 
 \begin{itemize}
 	\item We have the ability to detect objects and neatly locate them in the image by surrounding a bounding box. By doing that we know the size (in pixels) of the area that the objects occupy.
 	\item The camera's intrinsic parameters (focal lengths, image center, etc.) are known.
 	\item The (estimated) size of the objects (in centimetres for example) are known.
 \end{itemize}
-Thourghout this section, we will see how the statement above applies. Please note that the robot's specification will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
+Thourghout this section, we will see how the statement above applies. 
+
+\subsection{Camera Model}
+The robot's specification will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
 
 \begin{figure}[tb]
 	\centering
@@ -351,6 +355,7 @@ c_1 \\ c_2
 \end{bmatrix}
 \end{align}
 
+\subsection{Distance Estimation}
 Let's go further by considering a rectangle which is parallel to the image plane at distance $z$. The top-left and bottom-right corners of rectangular are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively (figure \ref{fig:rectForm}). We can compute the width and height of the rectangle from these coordinates: $w = x_2 - x_1$, $h = y_2 - y_1$. Beside, from formula \ref{form:pinhole}, we have:
 \begin{align}
 	\label{form:dist0}
@@ -427,5 +432,10 @@ And then deduce the center of the bounding box:
 \begin{align}
 x_c = \frac{1}{2}\frac{(u_1 + u_2 - 2 * c_1)z}{f_1} \hspace{0.5cm} y_c = \frac{1}{2}\frac{(v_1 + v_2 - 2*c_2)z}{f_2}
 \end{align}
-All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer. Those details will be mentioned in section \ref{sec:Cozmo}.
+All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer (accessed by SDK they provide \cite{ANKI:2017}). Those details will be mentioned in section \ref{sec:Cozmo}.
 This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
+\subsection{Error Estimation}
+Given the formula \ref{form:distEst}, we want to know the error $\Delta z$ when we compute the distance $z$. This can be obtained from the total derivative form:
+\begin{align*}
+dz = \frac{1}{2} \bigg( \frac{\partial z}{\partial f_1}df_1 + \frac{\partial z}{\partial f_2}df_2 + \frac{\partial z}{\partial f_1}df_1 + \frac{\partial z}{\partial f_1}df_1     \bigg)
+\end{align*}
