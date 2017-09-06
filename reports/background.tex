@@ -425,6 +425,7 @@ Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f
 \end{align}
 And then deduce the center of the bounding box:
 \begin{align}
+	\label{form:centerIm}
 x_c = \frac{1}{2}\frac{(u_1 + u_2 - 2 * c_1)z}{f_1} \hspace{0.5cm} y_c = \frac{1}{2}\frac{(v_1 + v_2 - 2*c_2)z}{f_2}
 \end{align}
 All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer. Those details will be mentioned in section \ref{sec:Cozmo}.

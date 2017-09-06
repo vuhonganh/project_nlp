@@ -1,10 +1,11 @@
 \label{chap:ExpRes}
-Based on sections \ref{sec:neuralNet} and \ref{sec:imgClass}, in this chapter, we will discuss further about the experimental results, particularly of the image classification system.
+Based on sections \ref{sec:neuralNet} and \ref{sec:imgClass}, in this chapter, we will discuss further about the experimental results, particularly of the image classification and object detection system.
 
 
 TODO: distance estimation with cube
 
-\section{Problem Review}
+\section{Image Classification}
+\subsection{Problem Review}
 Remind that the problem we are referring in this section is the image classification of images belonging to 12 categories. We have the following details:
 \begin{enumerate}
 	\item 12 classes: \tit{"apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange"}.
@@ -22,7 +23,7 @@ Remind that the problem we are referring in this section is the image classifica
 \end{enumerate}
 
 
-\section{Transfer Learning Result}
+\subsection{Transfer Learning Result}
 %\subsection{Results and Observations}
 As discussed in subsection \ref{sec:transferLearning}, we can freely design the fully-connected part. After multiple experiments, I found the following interesting observations:
 \begin{enumerate}
@@ -169,3 +170,11 @@ As discussed in subsection \ref{sec:transferLearning}, we can freely design the 
 		\label{fig:testFail2}
 	\end{minipage}
 \end{figure}
+
+\section{Distance Estimation}
+In this section, we set up an experiment to verify the distance estimated $\hat{d} = \sqrt{x^2 + y^2 + z^2}$ where $x, y, z$ are obtained from formula \ref{form:distEst} and \ref{form:
+
+\begin{align*}
+	z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i})
+\end{align*}
+The experiment is done with the Cozmo robot facing straight ahead a cube. The cube size is 4.4cm. Remember that all camera parameters are presented in subsection \ref{subsec:camInfo}. The cube is placed at distance $d \in \{10, 20, 30, 40, 50\}$ (centimeters). 
