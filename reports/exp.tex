@@ -172,9 +172,16 @@ As discussed in subsection \ref{sec:transferLearning}, we can freely design the 
 \end{figure}
 
 \section{Distance Estimation}
-In this section, we set up an experiment to verify the distance estimated $\hat{d} = \sqrt{x^2 + y^2 + z^2}$ where $x, y, z$ are obtained from formula \ref{form:distEst} and \ref{form:
-
+In this section, we set up an experiment to verify the distance estimated $\hat{d} = \sqrt{x^2 + y^2 + z^2}$ where $x, y, z$ are obtained from formula \ref{form:distEst} and \ref{form:centerIm}:
 \begin{align*}
-	z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i})
+	z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i}) \\
+	x_c = \frac{1}{2}\frac{(u_1 + u_2 - 2 * c_1)z}{f_1} \hspace{0.5cm} y_c = \frac{1}{2}\frac{(v_1 + v_2 - 2*c_2)z}{f_2}
 \end{align*}
-The experiment is done with the Cozmo robot facing straight ahead a cube. The cube size is 4.4cm. Remember that all camera parameters are presented in subsection \ref{subsec:camInfo}. The cube is placed at distance $d \in \{10, 20, 30, 40, 50\}$ (centimeters). 
+The experiment is done with the Cozmo robot facing straight ahead a cube. The cube size is 4.4cm (i.e $w = h = 4.4cm$). Remember that all camera parameters are presented in subsection \ref{subsec:camInfo}. The cube is placed at distance $d \in \{10, 20, 30, 40, 50\}$ (centimeters). By measuring the corners' coordinates, we obtain $w_i, h_i$. The result is shown below:
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.6\hsize]{./figures/distEstim}
+	\caption{Distance Estimation Experiment: Cube is placed in front of a Cozmo at 10, 20, 40 and 50 centimeters. We can see that there is nearly no difference between 40 and 50 centimeters.}
+	\label{fig:distEstim}
+\end{figure}
