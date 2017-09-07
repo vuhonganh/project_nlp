@@ -1,0 +1,12 @@
+book 116
+apple 409
+pen 361
+monitor 240
+mouse 500
+wallet 479
+keyboard 614
+banana 364
+key 347
+mug 425
+pear 120
+orange 475

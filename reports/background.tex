@@ -412,12 +412,12 @@ We then deduce:
 Note that the image of this rectangular is also a rectangular with width and height in pixel coordinates are: $w_{i} = u_2 - u_1$, $h_{i} = v_2 - v_1$. Combine this with formula \ref{form:dist1} we have:
 \begin{align}
 \label{form:dist2}
-z = f_1 * \frac{w}{w_i} \nonumber \\
-z = f_2 * \frac{h}{h_i}
+z = f_1  \frac{w}{w_i} \nonumber \\
+z = f_2  \frac{h}{h_i}
 \end{align}
 In reality, these two function will not return a same result because of the measure errors as well as the simplicity of the camera model. Hence we could compute the average:
 \begin{align}
-z = \frac{1}{2} (f_1 * \frac{w}{w_i} + f_2 * \frac{h}{h_i})
+z = \frac{1}{2} (f_1 \frac{w}{w_i} + f_2 \frac{h}{h_i})
 \label{form:distEst}
 \end{align}
 
@@ -431,12 +431,34 @@ Given the real size of the rectangle ($w, h$), the camera's information ($f_1, f
 And then deduce the center of the bounding box:
 \begin{align}
 	\label{form:centerIm}
-x_c = \frac{1}{2}\frac{(u_1 + u_2 - 2 * c_1)z}{f_1} \hspace{0.5cm} y_c = \frac{1}{2}\frac{(v_1 + v_2 - 2*c_2)z}{f_2}
+x_c = \frac{1}{2}\frac{(u_1 + u_2 - 2 c_1)z}{f_1} \hspace{0.5cm} y_c = \frac{1}{2}\frac{(v_1 + v_2 - 2 c_2)z}{f_2}
 \end{align}
 All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer (accessed by SDK they provide \cite{ANKI:2017}). Those details will be mentioned in section \ref{sec:Cozmo}.
 This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
 \subsection{Error Estimation}
-Given the formula \ref{form:distEst}, we want to know the error $\Delta z$ when we compute the distance $z$. This can be obtained from the total derivative form:
+In reality, we need to take into account the errors of camera sensor, predicted bounding box, perspective view and size variance of objects. Let's find out the mathematical formula of this error, in a simple experiment, where we estimate distance from a cube placed parallel to the image plane to the camera. In addition, our camera has identical focal length $f_1 = f_2$ (see subsection \ref{subsec:camInfo}). Let's denote $f = f_1 = f_2$ the focal length. Let's also assume the cube is close to the center of image (i.e. on the $z$ axis). Hence the distance from the camera is approximately the $z$ value from formula \ref{form:dist2}. By taking total derivative of formula \ref{form:dist2} we have:
 \begin{align*}
-dz = \frac{1}{2} \bigg( \frac{\partial z}{\partial f_1}df_1 + \frac{\partial z}{\partial f_2}df_2 + \frac{\partial z}{\partial f_1}df_1 + \frac{\partial z}{\partial f_1}df_1     \bigg)
+& \hspace{0.3cm} z = f \frac{h_i}{h} \\
+&\rightarrow \ln z = \ln f + \ln h_i - \ln h \\
+&\rightarrow \frac{d z}{z} = \frac{d f}{f} + \frac{d h_i}{h_i} - \frac{d h}{h}
 \end{align*}
+Let's denote $\Delta x$ the absolute error estimation of parameter $x$. We have the relative error estimation:
+\begin{align}
+\frac{\Delta z}{z} =  \frac{\Delta f}{f} + \frac{\Delta h_i}{h_i} + \frac{\Delta h}{h}
+\label{form:errEst}
+\end{align}
+We can see from formula \ref{form:errEst} that the relative error is big if: 
+\begin{itemize}
+	\item object is small ($h$ is small)
+	\item object is far from the camera ($h_i$ is small)
+	\item bounding box is not accurate ($\Delta h_i$ is big)
+	\item camera has low resolution (upper bound of $h_i$ is small)
+	\item object has big size variance ($\Delta h$ is big)
+\end{itemize}
+We will revise these above statements in section \ref{sec:distEstimExp}, where we really setup the experiment and estimate distance from the robot to a cube.
+
+%\subsection{Error Estimation}
+%Given the formula \ref{form:distEst}, we want to know the error $\Delta z$ when we compute the distance $z$. This can be obtained from the total derivative form:
+%\begin{align*}
+%dz = \frac{1}{2} \bigg( \frac{\partial z}{\partial f_1}df_1 + \frac{\partial z}{\partial f_2}df_2 + \frac{\partial z}{\partial f_1}df_1 + \frac{\partial z}{\partial f_1}df_1     \bigg)
+%\end{align*}

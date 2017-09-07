@@ -23,6 +23,8 @@ def estim_center(u1, v1, u2, v2, w, h, f1=292.84, f2=292.84, c1=161.09, c2=128.5
 
 w = h = 4.4  # in cm
 l = []
+a = [10,20,30,40,50]
+idx = 0
 with open('note.txt', 'r') as f:
 	for line in f:
 		line = line.strip('\n')
@@ -31,7 +33,10 @@ with open('note.txt', 'r') as f:
 		xc, yc, zc = estim_center(u1, v1, u2, v2, w, h)		
 		dist = np.sqrt(xc * xc + yc * yc + zc * zc)
 		l.append(dist)
-		print(img_name, xc, yc, zc, dist)
+		print('%.1f' %(100.0 * (a[idx] - dist) / a[idx]))
+		idx += 1
+
+		print('%s %.2f %.2f %.2f %.2f' %(img_name, xc, yc, zc, dist))
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
