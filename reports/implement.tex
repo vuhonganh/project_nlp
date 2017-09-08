@@ -86,6 +86,7 @@ Given the text command, we have a Reader instance that will do the preprocessing
 \end{figure}
 
 \section{Threading}
+\label{sec:threading}
 There are a few scenarios where we need to use threading in order to avoid freezing the user interface:
 \begin{itemize}
 	\item time to record the audio command: which can vary from 3 to 15 seconds
@@ -103,7 +104,8 @@ There are a few scenarios where we need to use threading in order to avoid freez
 Figure \ref{fig:threads} illustrates the threading structure of the program. Initially, the main program will run these threads in background. Then, whenever user's command needs to use them, these threads are waken up to do their jobs. Note that record thread always works together with speech recognition thread. The idea of seperating them in 2 threads is for further development when we could probably try other speech recognizers.
 
 \section{Dataset}
-TODO: explain how many dataset is used, how it is collected and structured
+\label{sec:dataset}
+Our dataset is obtained from image-net.org, the official website of \cite{ILSVRC15}. I personally chose images from 12 categories: \tit{"apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange"}. My purpose is to create a dataset of ordinary objects that we see and use daily. We can easily find these objects on our office table. Therefore, coding and testing with Cozmo can be executed immediately. In this section and the following one, we will discuss more about the characteristic of this dataset as well as some techniques used to preprocess the data.
 
 \subsection{Dataset Characteristic}
 Images from ImageNet are taken from many sources and some of them can be really confusing. For example, image in category \tit{Apple} can contain also other fruits (figure \ref{fig:imhard1}). Some of them are just simply difficult because the label is not the main content of the picture (figure \ref{fig:imhard2}). However, this diversity makes the system more flexible and robust at test time because in practice, we can have objects mixed together or not in the center of the image. Therefore, I chose to keep this characteristic.
@@ -124,6 +126,7 @@ Images from ImageNet are taken from many sources and some of them can be really 
 \end{figure}
 
 \section{Data Preprocessing and Augmentation}
+\label{sec:dataPrepAug}
 Commonly, there are two principal types of preprocessing data: \tit{mean subtraction} and \tit{normalization}. Preprocessing data normally helps training faster and empowers activation functions such as ReLU ($f(x) = max(x, 0)$).
 
 \subsection{Mean Subtraction}
@@ -134,7 +137,7 @@ Normalize data is to scale data to a fixed range $[-r, +r]$ where range $r$ is n
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=0.9\hsize]{./figures/prepro1}
-	\caption{Left: original 2D input data. Middle: subtracted mean data. Right: subtracted mean and normalized data. \tit{Image courtesy of Andrej Kaparthy \cite{cs231n}.}}
+	\caption{Left: original 2D input data. Middle: subtracted mean data. Right: subtracted mean and normalized data. Image source: \cite{cs231n}}
 	\label{fig:prepro1}
 \end{figure}
 
@@ -152,5 +155,35 @@ There are many ways to augment our dataset: flipping, rotating, cropping, distor
 	\label{fig:augment1}
 \end{figure}
 
+\section{Object Detection System Server}
+\label{sec:socketConnect}
+After training an object detection system, we need to make it as an backend server to reply requests from our main thread. For example, the user asks to detect an apple in front of the Cozmo robot. Then we have to run the object detection system on the photo taken by Cozmo and return images with predicted object(s) surrounded by a bounding box. Tested on my desktop (Intel Core i7-3770K), the CPU runtime for this task is $\approx 10$ seconds per image. Thus, this task must be done by a GPU workstation. I decide to use the computer graphic02 (with Nvidia GTX 1080 GPU) in lab 210 Huxley as the backend server for this task. The average runtime is reduced to $\approx 0.4$ second per image.
 
-TODO: add details about github, commits, fork, etc.
+The connection is illustrated as in figure \ref{fig:socketConnect}. Since connections to workstaions in the lab normally are 2-hop connections. The personal computer that hosts the main UI program needs to connect via VPN to school network. After that, these two computers can connect via socket.
+\begin{figure}[bh!]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/socketConnect}
+	\caption{Connection to graphic02 server in Huxley 210 lab: the personal computer that host the main UI program needs to connect via VPN to school network. After that, these two computers can connect via socket.}
+	\label{fig:socketConnect}
+\end{figure}
+
+Please note that the personal computer will encode the image to bytes and send to the workstation via socket. I found that \tit{the information (i.e. the image), in general, can not be sent in one go}. Therefore, \tit{a specific ending code} is added to the information for the server to know when it receives all the information.
+
+\section{Libraries and Github Repositories}
+\label{sec:github}
+To develop deep neural network algorithms, I chose to use Keras \cite{chollet2015keras} - a high level neural network API - with Tensorflow \cite{DBLP:journals/corr/AbadiABBCCCDDDG16} backend mainly because of its ability to do fast experimentation. In addition, the backend Tensorflow is also very popular with a big community.
+
+All of my code and experimental results are made publicly available at  \href{https://github.com/vuhonganh?tab=repositories}{my github repositories}. Here are some brief informations:
+\begin{itemize}
+	\item \href{https://github.com/vuhonganh/project_nlp}{project\_nlp} repo contains the code for the main UI and the report. ($\approx 100$ commits and $\approx 23400$ lines of code)
+	\item \href{https://github.com/vuhonganh/transfer_learning}{transfer\_learning} repo contains the code for Image Classification: implementing and fine-tuning. ($\approx 133$ commits and $\approx 7355$ lines of code)
+	\item \href{https://github.com/vuhonganh/keras-frcnn}{keras-frcnn} repo contains implementation of Faster RCNN algorithm using Keras. This is a fork from previous work of Yhenon \cite{kerasFrcnn}. Although a lot of work is done previously, the code base contains numerous errors and issues, I fixed and changed accordingly to my purpose, such as:
+	\begin{enumerate}
+		\item corrected the mean subtraction in preprocessing images
+		\item changed OpenCV to Scipy and Matplotlib for reading, plotting, saving images. The original version has unreadable bounding box where a lot of them are outside the image boundary.
+		\item reimplemented mean Average Precision metric for evaluation
+	\end{enumerate}
+	\item Overall, $\approx 300$ commits are made, and more than $30800$ code lines written, which is quite intensive for a 4-month project in my opinion.
+\end{itemize}
+
+

@@ -67,6 +67,15 @@
 \fancyhead[LO,RE]{\slshape \leftmark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter*{Abstract}
+\input{abt}
+\addcontentsline{toc}{chapter}{Abstract}
+
+
+\chapter*{Acknowledgement}
+\input{ack}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+
 \chapter{Introduction}
 %\begin{figure}[tb]
 %\centering
@@ -78,10 +87,8 @@
 %Figure~\ref{fig:logo} is an example of a figure. 
 \input{intro}
 
-
-
-\chapter{Guideline}
-\input{guideline}
+%\chapter{Guideline}
+%\input{guideline}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
 
@@ -110,8 +117,8 @@
 \input{exp}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\chapter{Conclusion} TODO in full report
-
+\chapter{Conclusions and Future Work}
+\input{conclu}
 
 %% bibliography
 %\cleardoublepage

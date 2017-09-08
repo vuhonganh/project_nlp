@@ -2,6 +2,7 @@
 In this chapter, I present briefly the theoretical background such as Information Extraction and Neural Network. I also discuss related problems like Image Classification, Object Detection as well as their state-of-the-art solutions.
 
 \section{Automatic Speech Recognition}
+\label{sec:ASR}
 An automatic Speech Recognition (ASR) system is the core part in any voice command system. Given the audio input, the ASR system will output the text form of the input for later processing. Briefly, the audio input is in form of a sound wave over the recording time. It's sampled at a rate of 16000Hz which is enough for recognition. Then this sound wave is chunked at each 20ms and transformed to a spectrogram by using Fourier transform. This is the input (at each time slot) to a recurrent neural network \cite{Medium:2016}. The output at each time slot is recognized characters. After that, a language model is normally used to refine this sequence of characters to a meaningful phrase. 
 
 Note that to build an ASR system that performs at the level of Amazon Alexa or Google Now, we need a lot of training data in both quantity (hundreds of thousands hours of spoken audio) and diversity (native and non-native speakers, with and without background noise). Unfortunately, this kind of data is not available. As the main objective of the project is to use voice to control the robot, not to build a decent ASR system, I decided to use existing software. I explored two solutions: open source systems and Google Cloud.

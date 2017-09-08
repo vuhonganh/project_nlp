@@ -1,12 +1,15 @@
-book 116
-apple 409
-pen 361
-monitor 240
-mouse 500
-wallet 479
-keyboard 614
-banana 364
-key 347
-mug 425
-pear 120
-orange 475
+Class & num train & & num val & Average Precision \\
+\hline
+book & 116 & 12 & 0.041 \\
+apple & 409 & 41 & 0.809 \\
+pen & 361 & 37 & 0.243 \\
+monitor & 240 & 24 & 0.364 \\
+mouse & 500 & 50 & 0.372 \\
+wallet & 479 & 47 & 0.842 \\
+keyboard & 614 & 61 & 0.873 \\
+banana & 364 & 36 & 0.683 \\
+key & 347 & 35 & 0.704 \\
+mug & 425 & 42 & 0.895 \\
+pear & 120 & 12 & 0.804 \\
+orange & 475 & 48 & 0.799 \\
+Total and mAP & 4450 & 445 & 0.619

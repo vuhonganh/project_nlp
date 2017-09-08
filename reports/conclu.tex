@@ -1,0 +1,14 @@
+In conclusion, during a 4-month period, we successfully build a robot application with voice command which:
+\begin{itemize}
+	\item can order the robot for movement
+	\item has integrated with a state-of-the-art neural network image classifier: recognize 12 categories with $> 93\%$ accuracy.
+	\item has integrated with a state-of-the-art neural network object detector: detect and localize objects belonging to those 12 categories
+	\item can estimate distance of known size object within a range from 20 to 40 centimeters, up to $10\%$ percent error.
+\end{itemize}
+However, there are a lot of things we can target if we carry on the work:
+\begin{enumerate}
+	\item the main UI can be more beautiful. In addition, a web interface is also a great idea to share my experience with users that do not have a Cozmo.
+	\item implement and embed the visual-based SLAM \cite{wiki:SLAM} using Extended Kalman Filter method \cite{wiki:Kalman}. 
+	\item prepare more data (manually annotate images) to get a larger dataset size in order to increase the accuracy of object detection system.
+	\item build a robot ourselve which let us choose a good camera since the major part of our application is visual-based.
+\end{enumerate}

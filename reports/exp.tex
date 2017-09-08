@@ -2,8 +2,9 @@
 Based on sections \ref{sec:neuralNet} and \ref{sec:imgClass}, in this chapter, we will discuss further about the experimental results, particularly of the image classification, distance estimation and object detection problems.
 
 \section{Image Classification}
+\label{sec:imgClasEval}
 \subsection{Problem Review}
-Remind that the problem we are referring in this section is the image classification of images belonging to 12 categories. We have the following details:
+Remember that the problem we are referring in this section is the image classification of images belonging to 12 categories. We have the following details:
 \begin{enumerate}
 	\item 12 classes: \tit{"apple", "pen", "book", "monitor", "mouse", "wallet", "keyboard", "banana", "key", "mug", "pear", "orange"}.
 	\item 1200 images for each class.
@@ -17,9 +18,11 @@ Remind that the problem we are referring in this section is the image classifica
 		\item multiple configuration for fully-connected layer (number of hidden layer, etc.)
 	\end{itemize} 
 	\item Note that after convolutional block, we flatten the feature tensor to become a 1D feature vector. In addition, our number of classes is fixed to 12. Hence we only denote the hidden layers in the fully-connected part. For example, resnet\_512 is the model uses convolutional blocks of Resnet50 and has fully-connected part as: flatten - 512 - 12. 
+	\item Training is done entirely by an Azure NV12 instance which has a GPU Nvidia M60 16GB. Using Resnet50, each epoch takes us $\approx 90$ seconds. We have to train the classifier system $\approx 26$ epochs ($\approx 45 minutes$) to achieve $ > 93\%$ top-1 accuracy.
 \end{enumerate}
 
 \subsection{Transfer Learning Result}
+\label{sec:transLearnEval}
 %\subsection{Results and Observations}
 As discussed in subsection \ref{sec:transferLearning}, we can freely design the fully-connected part. After multiple experiments, I found the following interesting observations:
 \begin{enumerate}
@@ -167,7 +170,11 @@ As discussed in subsection \ref{sec:transferLearning}, we can freely design the 
 
 \section{Distance Estimation}
 \label{sec:distEstimExp}
-In this section, we set up an experiment to verify the distance estimation method described in section \ref{sec:camModel}. The experiment is done with the Cozmo robot facing straight ahead a cube. The cube size is 4.4cm (i.e $w = h = 4.4cm$). Remember that all camera parameters are presented in subsection \ref{subsec:camInfo}. The cube is placed at ground truth distance $z \in \{10, 20, 30, 40, 50\}$ (centimeters). Figure \ref{fig:distEstim} illustrates this point. 
+\subsection{Problem Review}
+Distance Estimation is one of the most important task in Robot Localization and Mapping (or Simultaneous Localization and Mapping \cite{wiki:SLAM}). Given the camera's parameters and the size of the object, we can estimate the distance from the camera to the object. The theoretical notions are presented in \ref{sec:camModel}. In this section, we focus on setting up an experiment to verify those notions as well as to quantitatively estimate the order of magnitude of the error.
+
+\subsection{Experiment and Result}
+The experiment is setup with the Cozmo robot facing straight ahead a cube. The cube size is 4.4cm (i.e $w = h = 4.4cm$). Remember that all camera parameters are presented in subsection \ref{subsec:camInfo}. The cube is placed at ground truth distance $z \in \{10, 20, 30, 40, 50\}$ (centimeters). Figure \ref{fig:distEstim} illustrates this point. 
 
 \begin{figure}[tb]
 	\centering
@@ -195,26 +202,155 @@ By measuring the corners' coordinates, we obtain $u_1, u_2, v_1, v_2, w_i, h_i$ 
 	\begin{tabular}{c|c|c|c|c}
 ground truth $z$ (cm) & $\hat{z}$ (cm) & $\hat{d}$ (cm) & $\Delta z$ (cm) & $\Delta z / z$ (\%)\\
 \hline
+\hline
 10 & 9.34 & 9.43 & 0.57 & 5.7 \\
+\hline
 20 & 18.95 & 19.00 & 1.00 & 5.0 \\
+\hline
 30 & 28.32 & 28.35 & 1.65 & 5.5 \\
+\hline
 40 & 37.36 & 37.37 & 2.63 & 6.6  \\
+\hline
 50 & 46.02 & 46.04 & 3.96 & 7.9
 	\end{tabular}
-	\caption{Distance Estimation Result: }
+	\caption{Distance Estimation Result}
 	\label{table:2}
 \end{table}
 
 We can see from table \ref{table:2} that:
 \begin{itemize} 
 	\item $d \approx z$ and have an quantitative estimation about the errors.
-	\item The relative error is already $6.5\%$ for this simple setup \tit{where no perspective view error, no bounding box error and no shape variance error are taken into account}. 
+	\item The relative error is already $6.5\%$ for this simple setup \tit{where no perspective view error, no bounding box error and no shape variance error are taken into account}. Some examples of these errors will be introduced below. 
 	\item In addition, the figures also show the limitation of the camera sensor: for every distance larger than 40 centimeters, we hardly see the cube (of size 4.4 centimeters) in the image (images in second row in figure \ref{fig:distEstim}). 
 	\item In my opinion, the range to detect the cube (by a general detector, not accounting the tag on the cube) \tbf{is from 10 to 20 centimeters}. Therefore, a double-size object (of size 8.8 centimeters) are seen in 20 to 40 centimeters. This is quite limited to implement visual based simultaneous localization and mapping (SLAM) algorithm \cite{wiki:SLAM}. Remember that, the more recent Cozmo robots have a better camera sensor: VGA $640 \times 480$ resolution \cite{cozmoTech}. 
 \end{itemize}
 
-Based on these observations, implementing a visual-based SLAM system is more reasonably a future work when we have a more recent Cozmo.
+Based on these observations, we can predict that the order of relative error will be $\geq 10\%$ for a real object when we will take into account:
+\begin{enumerate}
+	\item variance in size: for example apples have diameter from 5.7 to 8.3 centimeters.
+	\item perspective view: for example the handle of a mug can be hidden by the mug itself.
+	\item bounding box error: we will see in section \ref{sec:objDetEval} that sometimes the box does not fit 100\% accurately the object. It can be a bit wider or smaller. Such small variances is critical for distance estimation task.
+\end{enumerate}
+Therefore, implementing a visual-based SLAM system is more reasonably a future work when we have a more recent Cozmo as well as time to implement an adaptive algorithm for distance estimation which makes use of odometry such as Extended Kalman Filter algorithm \cite{wiki:Kalman}.
 
 \section{Object Detection}
+\label{sec:objDetEval}
+\subsection{Problem Review}
+Object Detection is the task of classifying and localizing object(s) inside the given image. The theoretical approach to solve this problem is described in \ref{sec:objDetect}. In this section, we will evaluate our object detection system and also illustrate some results. Please note the following facts below:
+\begin{enumerate}
+	\item Our dataset is downloaded from ImageNet \cite{imagenet_cvpr09}. It's the same dataset for Image Classification problem. However, the number of samples is much less since not every image is annotated (i.e. no bounding box is provided).
+	\item The number of annotated images in our dataset is 4895. Since this is quite small for deep learning algorithms, we will divide the dataset into 4450 training images ($90\%$) and 450 testing images ($10\%$). We can again split the training set into training and validation set, however I decided not to because we do not have time and powerful GPUs to tune the system.
+	\item The annotated files are in XML format. I have to write code to parse and preprocess them since some annotations are wrong (bounding box is out of the image boundary, coordinates of top-left corner is bigger than bottom-right corner for example).
+	\item The training process is mostly run on \tit{graphic02} workstation in DoC lab (the GPU on that computer is a GTX 1080). Each epoch takes $\approx 2400$ seconds. The system needs to be trained for at least 30 epochs (i.e. 20 hours).
+	\item At test time, for each image, detecting and localizing objects take only $\approx 0.4$ second (using \tit{graphic02} workstation).
+	\item The base network (i.e. convolutional layers to compute feature vectors) is Resnet50 \cite{DBLP:journals/corr/HeZRS15}. We chose that based on its performance in Image Classification task: both accuracy and speed are impressive.
+	\item We also apply transfer learning: we load the pretrained Resnet50 model weight and keep the base network freezed. We only train the top layers such as rpn, classifier and regressor.
+	\item We use horizontal flip to augment image.
+\end{enumerate}
 
-TODO: write images
+\subsection{Evaluation}
+Table \ref{table:3} shows the Average Precision (AP) measured as well as the number of training and testing images for each class. Below are my observations:
+\begin{enumerate}
+	\item The overall mean Average Precision (mAP) is $0.619$. In my opinion this is a good result since our dataset is quite small. Normally the number of training images in competitions such as PASCAL VOC \cite{Everingham2010}, ILSVRC \cite{ILSVRC15} is more than $1000$ images for each class.
+	\item The class \tit{book} has really small AP: $0.041$. mainly due to two results:
+	\begin{itemize}
+		\item not enough training and testing data ( $116$ and $12$ respectively)
+		\item there are very difficult tests where the book is really small inside the image and sometimes the annotation is either partial or incorrect (figure \ref{fig:bookDifficult}).
+	\end{itemize}
+	\item The class \tit{pear} has small dataset too, however, images belong to this class are clearer and easier (figure \ref{fig:pear}).
+	\item The classes \tit{monitor}, \tit{mouse}, \tit{pen} has low AP due to:
+	\begin{itemize}
+		\item the images are difficult even for human beings since these objects normally appear together in workplace and there are often a lot of objects there (figure \ref{fig:messyOffice}).
+		\item some annotations are partial, i.e. we detect the true object but this can be counted as false positive.
+		\item there are similar objects such as wall photo and monitor (figure \ref{fig:similarObj}).
+	\end{itemize}
+	\item Some True Positive results for ImageNet testset are illustrated in figure \ref{fig:objDetImgNet}.
+	\item Some True Positive results for photos taken by Cozmo's camera are illustrated in figure \ref{fig:objDetCozmom}.
+	\item Limitations of data from ImageNet are summarized in figure \ref{fig:generalDifficult}: partial, inconsistent and incorrect annotation, "fullscreen" and overlapping objects.
+\end{enumerate}
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{c|c|c|c}
+		Class & num train & num test & Average Precision \\
+		\hline
+		\hline
+		book & 116 & 12 & 0.041 \\
+		\hline
+		apple & 409 & 41 & 0.809 \\
+		\hline
+		pen & 361 & 37 & 0.243 \\
+		\hline
+		monitor & 240 & 24 & 0.364 \\
+		\hline
+		mouse & 500 & 50 & 0.372 \\
+		\hline
+		wallet & 479 & 47 & 0.842 \\
+		\hline
+		keyboard & 614 & 61 & 0.873 \\
+		\hline
+		banana & 364 & 36 & 0.683 \\
+		\hline
+		key & 347 & 35 & 0.704 \\
+		\hline
+		mug & 425 & 42 & 0.895 \\
+		\hline
+		pear & 120 & 12 & 0.804 \\
+		\hline
+		orange & 475 & 48 & 0.799 \\
+		\hline
+		Total and mAP & 4450 & 445 & 0.619		
+	\end{tabular}
+	\caption{Object Detection Evaluation on testset of our ImageNet dataset. Please note that \tit{num train} and \tit{num test} stand for number of training and testing images respectively.}
+	\label{table:3}
+\end{table}
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/bookDifficult}
+	\caption{The difficulties of detecting books in our ImageNet dataset: the books are really small inside the image (images at higher layer) and sometimes the annotation is either partial (bottom-left image) or incorrect (bottom-right image).}
+	\label{fig:bookDifficult}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/pear}
+	\caption{The class \tit{pear} has small dataset too, however, images belong to this class are clearer and easier. We can see very accurate predictions in the four test images above.}
+	\label{fig:pear}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/messyOffice}
+	\caption{The objects in 3 classes \tit{monitor}, \tit{mouse}, \tit{pen} often go together in the office place. However, there are offices with a lot of objects.}
+	\label{fig:messyOffice}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.8\hsize]{./figures/similarObj}
+	\caption{False Positive due to object similarity: wall photo vs monitor.}
+	\label{fig:similarObj}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/objDetImgNet}
+	\caption{Object Detection with ImageNet: Run our Object Detection System on images in testset from our ImageNet dataset.}
+	\label{fig:objDetImgNet}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/objDetCozmo}
+	\caption{Object Detection with Cozmo's images: Run our Object Detection System on photos taken by Cozmo's camera.}
+	\label{fig:objDetCozmom}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=1.0\hsize]{./figures/generalDifficult}
+	\caption{Some limitations of ImageNet dataset: partial, inconsistent and incorrect annotation, "fullscreen" and overlapping objects.}
+	\label{fig:generalDifficult}
+\end{figure}
+
+
