@@ -243,14 +243,22 @@ The following notions (especially described in our context) are related to the e
 	\item Precision/Recall curve: we run the system through the test dataset once. For each image, we accumulate the precision and recall (for each class) computed so far and save these accumulated vectors. Once the detection system finishes, we use these accumulated vectors to plot precision corresponding to different recall levels.
 	\item Average Precision (AP) for each class: to evaluate the system we use a metric called \tbf{Average Precision} that is defined below:
 	$$ AP = \sum_k (R_k - R_{k-1})P_k $$
-	where $P_k$ and $R_k$ are the precision and recall at the $k$-th recall level.
+	where $P_k$ and $R_k$ are the precision and recall at the $k$-th recall level. Figure \ref{fig:precRecal} illustrates the precision/recall curve.
 	\item mean Average Precision (mAP): is the averaged AP over all classes.
 \end{itemize}
 Remember that there could be multiple objects located arbitrarily in each image. A high precision ($F_p << T_p$) and low recall ($F_n >> T_p$) system will detect very few objects but most of its predictions are correct. On the other hand, a low precision ($F_p >> T_p$) and high recall ($F_n << T_p$) system will detect a lot of objects but most of its predictions are incorrect. Therefore, a good detector has to have both high precision and high recall. The metric Average Precision (AP) is chosen because it summarises the shape of the precision/recall curve (it is approximately the area under the precision/recall curve). A high area under the curve means both high precision and high recall. Since precision and recall are numbers in range $[0.0, 1.0]$, average precision (AP) will also be in this range and a higher AP is better.
 
-\tbf{Remark:} there are various versions of the Average Precision calculation because people working in different domains (information retrieval, recommender system, computer vision etc.) adjust this metric to evaluate more appropriately their domain-specific tasks. We will use the general version defined above because this is the one used by the authors of Faster-RCNN method \cite{vocEval}. A version \cite{Everingham2010} that involves interpolation is used in PASCAL VOC challenges \cite{Everingham2010}. PASCAL VOC was a well-known annual competition in image classification, object detection and image segmentation in period 2005-2012. Although the challenge has finished but the PASCAL VOC dataset is still in extensive use today. We will use PASCAL VOC dataset to verify the correctness of the implementation. From figure \ref{fig:rcnnCompair}, we see that Faster-RCNN method scores around 70 mAP for VOC 2007 test dataset.
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.9\hsize]{./figures/precRecal}
+	\caption{An example precision/recall curve. We can see the precision and recall trade-off: precision is lower when we want a bigger recall (if we want to detect all the objects then the number of False Positive also increases). The Average Precision is approximately the area under the curve. Image source: \cite{scikit-learn-AP}}
+	\label{fig:precRecal}
+\end{figure}
 
-Given the Average Precision for each class, we can compute \tbf{mean Average Precision} across classes. This number will represent the system performance.
+
+\tbf{Remark:} there are various versions of the Average Precision calculation because people working in different domains (information retrieval, recommender system, computer vision etc.) adjust this metric to evaluate more appropriately their domain-specific tasks. We will use the general version defined above because this is the one used by the authors of Faster-RCNN method \cite{vocEval}. A version \cite{Everingham2010} that involves interpolation is used in PASCAL VOC challenges \cite{Everingham2010}. PASCAL VOC was a well-known annual competition in image classification, object detection and image segmentation in period 2005-2012. Although the challenge has finished, the PASCAL VOC dataset is still in extensive use today. We will use PASCAL VOC dataset to verify the correctness of the implementation. From figure \ref{fig:rcnnCompair}, we see that Faster-RCNN method scores around 70 mAP for VOC 2007 test dataset.
+
+Given the Average Precision for each class, we can compute the \tbf{mean Average Precision} across classes. This number will represent the system performance.
 
 \subsection{State-of-the-art Solutions}
 Faster-RCNN \cite{DBLP:journals/corr/RenHG015} is currently one of the best solutions for the Object Detection problem. It is based entirely on a convolutional neural network (\ref{fig:fasterRCNNfull}). We will also see related previous works (RCNN \cite{DBLP:journals/corr/GirshickDDM13} and Fast-RCNN \cite{DBLP:journals/corr/Girshick15}) to fully understand the method.
@@ -267,7 +275,7 @@ Figure \ref{fig:rcnn} illustrates the R-CNN method (Regions with Convolutional N
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=1.0\hsize]{./figures/rcnn}
-	\caption{Regional with Convolutional Neural Networks features: RoIs are extracted from Selective Search algorithm \cite{Uijlings:2013:SSO:2509349.2509382} and are wrapped (i.e. resized) to feed in a convolutional neural network. Image source: \cite{DBLP:journals/corr/GirshickDDM13}}
+	\caption{Regional with Convolutional Neural Networks features: RoIs are extracted using the Selective Search algorithm \cite{Uijlings:2013:SSO:2509349.2509382} and are wrapped (i.e. resized) to feed in a convolutional neural network. Image source: \cite{DBLP:journals/corr/GirshickDDM13}}
 	\label{fig:rcnn}
 \end{figure}
 From figure \ref{fig:rcnn}, we can see the core engine of R-CNN is the convolutional neural network layers and the classifier on top of that. Hence, doing well in Image Classification is a need to perform well in Object Detection.
@@ -294,19 +302,19 @@ Fast-RCNN is already good however there is one last bottleneck in the region pro
 \begin{figure}[tb]
 	\centering
 	\includegraphics[width=1.0\hsize]{./figures/fasterRCNNfull}
-	\caption{\tbf{Left}: Faster-RCNN integrates region proposal step to the whole network by creating Region Proposal Network (RPN). \tbf{Right}: RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Image source: \cite{DBLP:journals/corr/RenHG015}}
+	\caption{\tbf{Left}: Faster-RCNN integrates the region proposal step in the whole network by creating a Region Proposal Network (RPN). \tbf{Right}: RPN proposes k anchor boxes of different sizes and width/height ratios. For each anchor box, the RPN will detect whether it contains an object (\tit{cls} layer) and refine its shape and position (\tit{reg} layer). Image source: \cite{DBLP:journals/corr/RenHG015}}
 	\label{fig:fasterRCNNfull}
 \end{figure}
 
 \subsubsection{A note on training}
-The Faster-RCNN model has finally 4 loss functions (figure \ref{fig:lossFasterRCNN}). These 4 losses will be Let's denote the losses in RPN \tit{the lower head}; the losses in the final layer \tit{the upper head} respectively. There exists multiple training schemes as described in \cite{DBLP:journals/corr/RenHG015}. We will adopt the approximate joint training scheme which is simpler to implement and still gives similar performance to other schemes. The approximate joint training scheme is described as follows: 
+The Faster-RCNN model has finally 4 loss functions (figure \ref{fig:lossFasterRCNN}). Let's denote the losses in RPN \tit{the lower head}; the losses in the final layer \tit{the upper head} respectively. There exists various training schemes as described in \cite{DBLP:journals/corr/RenHG015}. We will adopt the approximate joint training scheme which is simpler to implement and still gives similar performance to other schemes. The approximate joint training scheme is described as follows: 
 For each gradient descent iteration
 \begin{itemize}
-	\item In forward pass: region proposals are treated as fixed, pre-computed proposals to train the upper head of the model.
-	\item In backward pass: gradients flow as usual from both upper and lower head. 
+	\item In a forward pass: region proposals are treated as fixed, pre-computed proposals to train the upper head of the model.
+	\item In a backward pass: gradients flow as usual from both upper and lower head. 
 	\item It is approximate because we do not calculate derivates of upper losses with respect to the region proposals' coordinates (since we are considering them fixed).
 \end{itemize}
-In addition, all the losses are defined mathematically in \cite{DBLP:journals/corr/RenHG015}. For more details, please refer to that paper.
+All the losses are defined mathematically in \cite{DBLP:journals/corr/RenHG015}. For more details, please refer to that paper.
 
 \begin{figure}[tb]
 	\centering
@@ -315,7 +323,7 @@ In addition, all the losses are defined mathematically in \cite{DBLP:journals/co
 	\label{fig:lossFasterRCNN}
 \end{figure}
 
-Based on the speed and robustness of Faster-RCNN method (figure \ref{fig:rcnnCompair}), I chose Faster-RCNN method to build our object detection system.
+Based on the speed and robustness of the Faster-RCNN method (figure \ref{fig:rcnnCompair}), I chose Faster-RCNN method to build our object detection system.
 
 
 \section{Camera Model and Distance Estimation}
@@ -330,7 +338,7 @@ We can estimate the distance from camera to objects if these three requirements 
 Thourghout this section, we will see how the statement above applies. 
 
 \subsection{Camera Model}
-The robot's specification will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve undistortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent object's position \tit{in the camera's frame}.
+The robot's specification will be introduced more carefully in section \ref{sec:Cozmo}. I only note here that the robot's camera resolution is quite low ($320 \times 240$) and its field of view is also small ($\approx 50 ^{\circ}$). Based on these numbers, I chose to use a simple pinhole camera model that does not involve distortion. An illustration of the model is shown in figure \ref{fig:pinhole} where $(u, v)$ are \tit{pixel coordinates on the image} and $(x,y,z)$ represent the object's position \tit{in the camera's frame}.
 
 \begin{figure}[tb]
 	\centering
@@ -355,9 +363,11 @@ y/z
 c_1 \\ c_2
 \end{bmatrix}
 \end{align}
+where $(u, v)$ are \tit{pixel coordinates on the image}, $(x,y,z)$ represent the object's position \tit{in the camera's frame}, $f_1, f_2$ (in pixel unit) are focal lengths and $c_1, c_2$ (in pixel unit) are coordinates of the center of the image.
+
 
 \subsection{Distance Estimation}
-Let's go further by considering a rectangle which is parallel to the image plane at distance $z$. The top-left and bottom-right corners of rectangular are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively (figure \ref{fig:rectForm}). We can compute the width and height of the rectangle from these coordinates: $w = x_2 - x_1$, $h = y_2 - y_1$. Beside, from formula \ref{form:pinhole}, we have:
+We go further by considering a rectangle which is parallel to the image plane at distance $z$. The top-left and bottom-right corners of rectangular are represented in the camera's frame by $(x_1, y_1, z)$ and $(x_2, y_2, z)$ respectively (figure \ref{fig:rectForm}). We can compute the width and height of the rectangle from these coordinates: $w = x_2 - x_1$, $h = y_2 - y_1$. Beside, from formula \ref{form:pinhole}, we have:
 \begin{align}
 	\label{form:dist0}
 	\begin{bmatrix}
@@ -410,13 +420,13 @@ We then deduce:
 	\label{fig:rectForm}
 \end{figure}
 
-Note that the image of this rectangular is also a rectangular with width and height in pixel coordinates are: $w_{i} = u_2 - u_1$, $h_{i} = v_2 - v_1$. Combine this with formula \ref{form:dist1} we have:
+Note that the image of this rectangular is also a rectangular with width and height in pixel coordinates: $w_{i} = u_2 - u_1$, $h_{i} = v_2 - v_1$. Combining this with formula \ref{form:dist1} we have:
 \begin{align}
 \label{form:dist2}
 z = f_1  \frac{w}{w_i} \nonumber \\
 z = f_2  \frac{h}{h_i}
 \end{align}
-In reality, these two function will not return a same result because of the measure errors as well as the simplicity of the camera model. Hence we could compute the average:
+In reality, these two functions will not return a same result because of the measurement errors as well as the simplicity of the camera model. Hence we could compute the average:
 \begin{align}
 z = \frac{1}{2} (f_1 \frac{w}{w_i} + f_2 \frac{h}{h_i})
 \label{form:distEst}
@@ -435,7 +445,7 @@ And then deduce the center of the bounding box:
 x_c = \frac{1}{2}\frac{(u_1 + u_2 - 2 c_1)z}{f_1} \hspace{0.5cm} y_c = \frac{1}{2}\frac{(v_1 + v_2 - 2 c_2)z}{f_2}
 \end{align}
 All the camera's information mentioned above (focal lengths, image center) can be obtained by doing camera calibration. Fortunately, these specifications are provided by the robot manufacturer (accessed by SDK they provide \cite{ANKI:2017}). Those details will be mentioned in section \ref{sec:Cozmo}.
-This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects.
+This distance estimation capability enables a variety of actions such as localization of the robot in a map with some known fixed tags or autonomous path planning to reach objects. This method is derived on my own, based on the advice of Professor Leutenegger and some concepts about pinhole camera model introduced in his course C433: Advanced Robotics \cite{c433}. We will verify its correctness in section \ref{sec:distEstimExp}.
 \subsection{Error Estimation}
 In reality, we need to take into account the errors of camera sensor, predicted bounding box, perspective view and size variance of objects. Let's find out the mathematical formula of this error, in a simple experiment, where we estimate distance from a cube placed parallel to the image plane to the camera. In addition, our camera has identical focal length $f_1 = f_2$ (see subsection \ref{subsec:camInfo}). Let's denote $f = f_1 = f_2$ the focal length. Let's also assume the cube is close to the center of image (i.e. on the $z$ axis). Hence the distance from the camera is approximately the $z$ value from formula \ref{form:dist2}. By taking total derivative of formula \ref{form:dist2} we have:
 \begin{align*}
