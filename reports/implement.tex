@@ -177,13 +177,11 @@ All of my code and experimental results are made publicly available at  \href{ht
 \begin{itemize}
 	\item \href{https://github.com/vuhonganh/project_nlp}{project\_nlp} repo contains the code for the main UI and the report. ($\approx 100$ commits and $\approx 23400$ lines of code)
 	\item \href{https://github.com/vuhonganh/transfer_learning}{transfer\_learning} repo contains the code for Image Classification: implementing and fine-tuning. ($\approx 133$ commits and $\approx 7355$ lines of code)
-	\item \href{https://github.com/vuhonganh/keras-frcnn}{keras-frcnn} repo contains implementation of Faster RCNN algorithm using Keras. This is a fork (i.e. a customised represitory based on the original) from previous work of Yhenon \cite{kerasFrcnn}. Although a lot of work is done previously, the code base contains numerous errors and issues, I fixed and changed accordingly to my purpose, such as:
+	\item \href{https://github.com/vuhonganh/keras-frcnn}{keras-frcnn} repo contains implementation of Faster RCNN algorithm using Keras. This is a fork from previous work of Yhenon \cite{kerasFrcnn}. A fork is a cloned represitory of the original one so that the developers (who forked it) can extend the work to solve their specific problems. This is indeed the open-source spirit as we do not have to reinvent all the wheels every time we want to solve a problem. Although lot of work is done previously, the code base of Yhenon contains numerous errors and issues, I fixed and changed accordingly to my purpose, such as:
 	\begin{enumerate}
 		\item corrected the mean subtraction in preprocessing images
 		\item changed OpenCV to Scipy and Matplotlib for reading, plotting, saving images. The original version has unreadable bounding box where a lot of them are outside the image boundary.
 		\item reimplemented mean Average Precision metric for evaluation
 	\end{enumerate}
-	\item Overall, $\approx 300$ commits are made, and more than $30800$ code lines written, which is quite intensive for a 4-month project in my opinion.
+	\item Overall, $\approx 300$ commits are made, and more than $30800$ code lines were written. This is quite intensive for a 4-month project in my opinion.
 \end{itemize}
-
-
