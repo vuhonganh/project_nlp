@@ -173,11 +173,11 @@ Please note that the personal computer will encode the image to bytes and send t
 \label{sec:github}
 To develop deep neural network algorithms, I chose to use Keras \cite{chollet2015keras} - a high level neural network API - with Tensorflow \cite{DBLP:journals/corr/AbadiABBCCCDDDG16} backend mainly because of its ability to do fast experimentation. In addition, the backend Tensorflow is also very popular with a big community.
 
-All of my code and experimental results are made publicly available at  \href{https://github.com/vuhonganh?tab=repositories}{my github repositories}. Here are some brief informations:
+All of my code and experimental results are made publicly available at  \href{https://github.com/vuhonganh?tab=repositories}{my GitHub repositories}. For your information, GitHub is a web-based version control repository and Internet hosting service where developers and researchers can share their open-source works. Here are some brief informations:
 \begin{itemize}
 	\item \href{https://github.com/vuhonganh/project_nlp}{project\_nlp} repo contains the code for the main UI and the report. ($\approx 100$ commits and $\approx 23400$ lines of code)
 	\item \href{https://github.com/vuhonganh/transfer_learning}{transfer\_learning} repo contains the code for Image Classification: implementing and fine-tuning. ($\approx 133$ commits and $\approx 7355$ lines of code)
-	\item \href{https://github.com/vuhonganh/keras-frcnn}{keras-frcnn} repo contains implementation of Faster RCNN algorithm using Keras. This is a fork from previous work of Yhenon \cite{kerasFrcnn}. Although a lot of work is done previously, the code base contains numerous errors and issues, I fixed and changed accordingly to my purpose, such as:
+	\item \href{https://github.com/vuhonganh/keras-frcnn}{keras-frcnn} repo contains implementation of Faster RCNN algorithm using Keras. This is a fork (i.e. a customised represitory based on the original) from previous work of Yhenon \cite{kerasFrcnn}. Although a lot of work is done previously, the code base contains numerous errors and issues, I fixed and changed accordingly to my purpose, such as:
 	\begin{enumerate}
 		\item corrected the mean subtraction in preprocessing images
 		\item changed OpenCV to Scipy and Matplotlib for reading, plotting, saving images. The original version has unreadable bounding box where a lot of them are outside the image boundary.
