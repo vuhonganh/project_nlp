@@ -55,7 +55,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         # set image view
         self.lImg.setFrameShadow(QFrame.Sunken)
         self.lImg.setFrameShape(QFrame.StyledPanel)
-        self.lImg.setMinimumSize(QSize(256, 256))
+        self.lImg.setMinimumSize(QSize(320, 320))
 
     def sendClicked(self):
         human_cmd = self.mleChat.text()

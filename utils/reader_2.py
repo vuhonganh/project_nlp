@@ -30,10 +30,11 @@ class Reader2:
         text_processed_list = self._preprocess(text)
         self.res_dict["list_text"] = text_processed_list
 
-        if text_processed_list[0] == "go" and text_processed_list[1] == "to":
-            self.res_dict["intent"] = "goto"
-        else:
+        if text_processed_list[0] == "go":
             self.res_dict["intent"] = text_processed_list[0]
+            if len(text_processed_list) > 1 and text_processed_list[1] == "to":
+                self.res_dict["intent"] = "goto"
+
         return self.res_dict
 
     @staticmethod
