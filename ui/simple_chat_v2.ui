@@ -15,8 +15,22 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout" columnstretch="40,60,0">
-    <item row="0" column="0" rowspan="4">
-     <widget class="QWidget" name="widget" native="true"/>
+    <item row="2" column="1">
+     <widget class="QPushButton" name="pbVoice">
+      <property name="text">
+       <string>Use Voice</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QPushButton" name="pbSend">
+      <property name="text">
+       <string>Send</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="mleChat"/>
     </item>
     <item row="0" column="1" colspan="2">
      <widget class="QTextEdit" name="teRules">
@@ -35,21 +49,21 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QPushButton" name="pbVoice">
-      <property name="text">
-       <string>Use Voice</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="mleChat"/>
-    </item>
-    <item row="3" column="2">
-     <widget class="QPushButton" name="pbSend">
-      <property name="text">
-       <string>Send</string>
-      </property>
+    <item row="0" column="0" rowspan="2">
+     <widget class="QWidget" name="imgView" native="true">
+      <widget class="QLabel" name="lImg">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>361</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>

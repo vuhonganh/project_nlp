@@ -4,8 +4,11 @@ from utils.asr import VoiceRec
 from utils.asr import RecThread
 from utils.asr import Classifier
 from utils.asr import STT
-from ui.ui_chat import Ui_MainWindow
+# from ui.ui_chat import Ui_MainWindow
+from ui.ui_chat_v2 import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QFrame
 import sys
 from utils.action import ActionGo, ActionTurn, ActionWhat
 import cozmo
@@ -49,6 +52,11 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         # make cursor focus on chat line
         self.mleChat.setFocus()
 
+        # set image view
+        self.lImg.setFrameShadow(QFrame.Sunken)
+        self.lImg.setFrameShape(QFrame.StyledPanel)
+        self.lImg.setMinimumSize(QSize(256, 256))
+
     def sendClicked(self):
         human_cmd = self.mleChat.text()
         self.mleChat.clear()
@@ -80,11 +88,27 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.teLog.insertPlainText(text + "\n")
 
     def robot_log(self, text):
+        # self.teLog.clear()
         self.teLog.setTextColor(QtGui.QColor('orange'))
         self.teLog.insertPlainText("Robot: ")
         self.teLog.moveCursor(QtGui.QTextCursor.End)
         self.teLog.setTextColor(QtGui.QColor('black'))
         self.teLog.insertPlainText(text + "\n")
+        # self.teLog.setHtml('<html> <body> There is a an image after this word <img src="./im01.png" />.</body></html>')
+        # pic = QtWidgets.QLabel(self.imgView)
+        # pic.setGeometry(0, 0, 320, 240)
+        # pixmap = QtGui.QPixmap("./im01.png")
+        # # pixmap = pixmap.scaledToHeight(200)
+        # pic.setPixmap(pixmap)
+        # self.imgView.show()
+        #self.imgView.
+        if 'turn' in text:
+            pixmap = QtGui.QPixmap("./im01.png")
+        else:
+            pixmap = QtGui.QPixmap("./im02.png")
+        self.lImg.setPixmap(pixmap)
+
+
 
     def voiceClicked(self):
         print("voice clicked")
