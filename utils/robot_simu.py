@@ -68,7 +68,8 @@ class Robot(Turtle):
                 time.sleep(0.1)
                 cnt += 1
             img = latest_img.raw_image
-            imsave('cur_img.JPEG', img)
+            imsave('cur_orig_img.JPEG', img)
+            # imsave('cur_img.png', img)
             img = imresize(img, (224, 224))
             return img
         return None

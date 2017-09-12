@@ -15,7 +15,7 @@ import cozmo
 # set Rules text
 rules = "go forward/backward X (millimeters) \nturn left/right X (degrees)\nwhat is it"
 act_dict = {"go": ActionGo, "turn": ActionTurn, "what": ActionWhat}
-
+import os
 
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, acozmo=None):
@@ -76,9 +76,15 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 robot_rep = act.do_act(self.robot)
             self.robot_log(robot_rep)
+            self.img_log()
             if img is not None:
+                self.img_log()
                 self.classifier_thread.activate(img)
 
+    def img_log(self):
+        if os.path.isfile('./cur_res_img.JPEG'):
+            pixmap = QtGui.QPixmap("cur_res_img.JPEG")
+            self.lImg.setPixmap(pixmap)
 
     def human_log(self, text):
         self.teLog.setTextColor(QtGui.QColor('blue'))

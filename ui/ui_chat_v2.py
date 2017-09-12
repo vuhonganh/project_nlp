@@ -60,5 +60,5 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pbVoice.setText(_translate("MainWindow", "Use Voice"))
         self.pbSend.setText(_translate("MainWindow", "Send"))
-        self.lImg.setText(_translate("MainWindow", "TextLabel"))
+        self.lImg.setText(_translate("MainWindow", "Current Image"))
 
