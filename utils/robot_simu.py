@@ -74,6 +74,23 @@ class Robot(Turtle):
             return img
         return None
 
+    def take_photo_detect(self):
+        if self.m_cozmo:
+            # self.m_cozmo.world.wait_for(cozmo.world.EvtNewCameraImage) - not work
+            cnt = 0
+            latest_img = None
+            while latest_img is None and cnt < 10:
+                latest_img = self.m_cozmo.world.latest_image
+                time.sleep(0.1)
+                cnt += 1
+            img = latest_img.raw_image
+            imsave('cur_orig_img.JPEG', img)
+            # imsave('cur_img.png', img)
+            # img = imresize(img, (224, 224))
+            return img
+        return None
+
+
     def say_text(self, text):
         if self.m_cozmo:
             self.m_cozmo.say_text(text)

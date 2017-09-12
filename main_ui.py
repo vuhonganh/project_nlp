@@ -4,17 +4,18 @@ from utils.asr import VoiceRec
 from utils.asr import RecThread
 from utils.asr import Classifier
 from utils.asr import STT
+from utils.asr import Detector
 # from ui.ui_chat import Ui_MainWindow
 from ui.ui_chat_v2 import Ui_MainWindow
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QFrame
 import sys
-from utils.action import ActionGo, ActionTurn, ActionWhat
+from utils.action import ActionGo, ActionTurn, ActionWhat, ActionDetect
 import cozmo
 # set Rules text
-rules = "go forward/backward X (millimeters) \nturn left/right X (degrees)\nwhat is it"
-act_dict = {"go": ActionGo, "turn": ActionTurn, "what": ActionWhat}
+rules = "go forward/backward X (millimeters) \nturn left/right X (degrees) \nwhat is it \ndetect object"
+act_dict = {"go": ActionGo, "turn": ActionTurn, "what": ActionWhat, "detect": ActionDetect}
 import os
 
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -49,6 +50,12 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.classifier_thread = Classifier()
         self.classifier_thread.signal_classify_done.connect(self.classifyReady)
         self.classifier_thread.start()
+
+        # detector thread
+        self.detector_thread = Detector()
+        self.detector_thread.signal_detect_done.connect(self.detectReady)
+        self.detector_thread.start()
+
         # make cursor focus on chat line
         self.mleChat.setFocus()
 
@@ -65,25 +72,36 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         # read command and maps into an information dict
         info_dict = self.rd.read(human_cmd)
 
+        print(info_dict)
+
         img = None  # buffer for image
-        if info_dict["intent"] not in act_dict.keys():
-            self.robot_log("Unknown command!")
+
+        if "intent" not in info_dict or info_dict["intent"] not in act_dict.keys():
+            self.robot_log("Cozmo is not turned on for visual tasks or you typed unknown command!")
         else:
             act = act_dict[info_dict["intent"]](info_dict)
             if info_dict["intent"] == "what":
                 print("doing What intent")
                 robot_rep, img = act.do_act(self.robot)
+                if img is not None:
+                    self.img_log()
+                    self.classifier_thread.activate(img)
+
+            elif info_dict["intent"] == "detect":
+                print("doing Detect intent")
+                robot_rep, img = act.do_act(self.robot)
+                if img is not None:
+                    self.img_log()
+                    self.detector_thread.activate(img)
             else:
                 robot_rep = act.do_act(self.robot)
-            self.robot_log(robot_rep)
-            self.img_log()
-            if img is not None:
-                self.img_log()
-                self.classifier_thread.activate(img)
 
-    def img_log(self):
-        if os.path.isfile('./cur_res_img.JPEG'):
-            pixmap = QtGui.QPixmap("cur_res_img.JPEG")
+            self.robot_log(robot_rep)
+
+
+    def img_log(self, file_img='./cur_orig_img.JPEG'):
+        if os.path.isfile(file_img):
+            pixmap = QtGui.QPixmap(file_img)
             self.lImg.setPixmap(pixmap)
 
     def human_log(self, text):
@@ -132,6 +150,16 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pbVoice.setEnabled(True)
         self.teLog.insertPlainText('LOG: sound is recorded to ' + filename + '\n')
         self.stt_thread.activate(filename)
+
+    @QtCore.pyqtSlot(str)
+    def detectReady(self, statusMsg):
+        print('status is %s' % statusMsg)
+        if 'succeed' in statusMsg:
+            self.img_log('./cur_res_img.JPEG')
+        else:
+            self.robot_log('detector server is probably down or cozmo not on')
+            print('detector server is probably down or cozmo not on')
+
 
     @QtCore.pyqtSlot(str)
     def classifyReady(self, top3_str):
