@@ -108,11 +108,11 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
         # pic.setPixmap(pixmap)
         # self.imgView.show()
         #self.imgView.
-        if 'turn' in text:
-            pixmap = QtGui.QPixmap("./im01.png")
-        else:
-            pixmap = QtGui.QPixmap("./im02.png")
-        self.lImg.setPixmap(pixmap)
+        # if 'turn' in text:
+        #     pixmap = QtGui.QPixmap("./im01.png")
+        # else:
+        #     pixmap = QtGui.QPixmap("./im02.png")
+        # self.lImg.setPixmap(pixmap)
 
 
 
