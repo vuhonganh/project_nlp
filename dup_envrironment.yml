@@ -146,9 +146,6 @@ dependencies:
   - proto-google-cloud-spanner-v1==0.15.3
   - proto-google-cloud-speech-v1beta1==0.15.3
   - proto-google-cloud-vision-v1==0.90.3
-  - pyasn1==0.2.3
-  - pyasn1-modules==0.0.8
-  - pyaudio==0.2.11
   - python-qt-binding==0.3.2
   - pyyaml==3.12
   - qt-dotgraph==0.3.4
