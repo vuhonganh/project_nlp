@@ -33,7 +33,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # FIRST try
         self.voice_thread = None
-        self.voice_thread = VoiceRec(recording_time=8)
+        self.voice_thread = VoiceRec(recording_time=4)
         self.voice_thread.signal_recording_done.connect(self.recordReady)
         self.voice_thread.start()
 
@@ -191,6 +191,7 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
         if a0.key() == QtCore.Qt.Key_Escape:
+            self.detector_thread.shutdown_server()
             self.close()
 
         super().keyPressEvent(a0)

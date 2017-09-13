@@ -65,19 +65,14 @@ class Detector(QThread):
             print('CANNOT CONNECT TO SERVER: ', e)
             self.serverUp = False
 
+    def shutdown_server(self):
+        if self.serverUp:
+            msg = 'exit'.encode()
+            print('sending exit message with end-symbole to shutdown client properly')
+            self.s.sendall(msg + end.encode())
+
     def __del__(self):
         self._abort = True
-
-        # CLOSE client
-        if self.serverUp:
-            self.s.close()
-
-        ### IF WE WANT TO SHUTDOWN SERVER
-        msg = 'exit'.encode()
-        print('sending exit message with end-symbole to shutdown client properly')
-        self.s.sendall(msg + end.encode())
-        ### IF WE WANT TO SHUTDOWN SERVER
-
         self.wait()
 
     def activate(self, img_np_arr):
