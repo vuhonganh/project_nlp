@@ -15,10 +15,10 @@ class ActionDetect:
         return self.input_dict["intent"] + ", " + str(self.input_dict["list_text"])
 
     def _extract_info_strict(self):
-        """strictly follow the rules for DETECT intent: detect object"""
+        """strictly follow the rules for DETECT intent: detection"""
         self.res_dict["intent"] = "UNK"
-        if len(self.input_dict["list_text"]) > 1:
-            if self.input_dict["list_text"][1] == "object":
+        if len(self.input_dict["list_text"]) > 0:
+            if self.input_dict["list_text"][0] == "detection":
                 self.res_dict["intent"] = self.input_dict["intent"]
 
     def do_act(self, robot):

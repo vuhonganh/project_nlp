@@ -14,8 +14,8 @@ import sys
 from utils.action import ActionGo, ActionTurn, ActionWhat, ActionDetect
 import cozmo
 # set Rules text
-rules = "go forward/backward X (millimeters) \nturn left/right X (degrees) \nwhat is it \ndetect object"
-act_dict = {"go": ActionGo, "turn": ActionTurn, "what": ActionWhat, "detect": ActionDetect}
+rules = "go forward/backward X (millimeters) \nturn left/right X (degrees) \nwhat is it \ndetection"
+act_dict = {"go": ActionGo, "turn": ActionTurn, "what": ActionWhat, "detection": ActionDetect}
 import os
 
 class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -87,8 +87,8 @@ class Chat(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.img_log()
                     self.classifier_thread.activate(img)
 
-            elif info_dict["intent"] == "detect":
-                print("doing Detect intent")
+            elif info_dict["intent"] == "detection":
+                print("doing Detection intent")
                 robot_rep, img = act.do_act(self.robot)
                 if img is not None:
                     self.img_log()
